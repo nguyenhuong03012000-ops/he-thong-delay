@@ -14,7 +14,49 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// -------- BẢO MẬT & ĐƯỜNG DẪN WEB (DASHBOARD) --------
+const basicAuth = (req, res, next) => {
+    // Bỏ qua tài khoản cho các đường dẫn API ngầm
+    if (req.path.startsWith('/api/')) return next();
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="Secure Dashboard"');
+        return res.status(401).send('<h2 style="font-family:sans-serif;text-align:center;margin-top:50px;">🔴 TRUY CẬP BỊ TỪ CHỐI. YÊU CẦU MẬT KHẨU!</h2>');
+    }
+
+    const [login, password] = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+
+    // Tên đăng nhập và Mật khẩu chung cho Team
+    if (login === 'zen8' && password === 'baocao2026') {
+        return next();
+    }
+
+    res.setHeader('WWW-Authenticate', 'Basic realm="Secure Dashboard"');
+    return res.status(401).send('<h2 style="font-family:sans-serif;text-align:center;margin-top:50px;">🔴 SAI MẬT KHẨU HOẶC TÀI KHOẢN!</h2>');
+};
+
+app.use(basicAuth);
+
+// Chỉ cho phép truy cập các file Web (Chống lộ file .env hay mã nguồn bảo mật)
+const allowedFiles = [
+    'index_v2.html', 'Bao_Cao_Delay_Doc_Lap.html', 'index_kw.html', 'dashboard.html', 'index.html',
+    'app_v2.js', 'app_kw.js', 'delay_v27.js', 'app.js', 'bundle.js', 'patch_v25.js'
+];
+
+app.get('/*', (req, res, next) => {
+    if (req.path.startsWith('/api/')) return next(); // Bỏ qua nếu là API endpoint
+
+    // Nếu vào trang chủ / thì tự động mở báo cáo index_v2.html
+    let requestedFile = req.path === '/' ? 'index_v2.html' : req.path.substring(1);
+
+    if (allowedFiles.includes(requestedFile)) {
+        return res.sendFile(path.join(__dirname, requestedFile));
+    }
+
+    next();
+});
 
 const PORT = 3000;
 
