@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSA Order Management Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --accent: #0284c7;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --risk-color: #e11d48;
+            --success-color: #059669;
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Excel-Style Filters */
+        .excel-filter {
+            position: relative;
+            width: 100%;
+            min-width: 130px;
+            max-width: 200px;
+            text-align: left;
+            margin-top: 4px;
+            font-weight: normal;
+        }
+
+        .ef-header {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            padding: 4px 6px;
+            color: #0f172a;
+            cursor: pointer;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ef-header::after {
+            content: "▼";
+            font-size: 8px;
+            margin-left: 5px;
+        }
+
+        .ef-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            width: max-content;
+            min-width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .ef-dropdown label {
+            display: block;
+            padding: 4px 6px;
+            cursor: pointer;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+
+        .ef-dropdown label:hover {
+            background: #f1f5f9;
+        }
+
+        .ef-dropdown input[type="checkbox"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        select option {
+            color: black !important;
+            background: white !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 98%;
+            width: 98%;
+            margin: 0 auto;
+        }
+
+        /* Automation Section (Hidden Inputs) */
+        .config {
+            display: none;
+        }
+
+        /* SUMMARY ROW (V6.6) */
+        .hud-summary {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .hud-summary b {
+            color: var(--accent);
+        }
+
+        .hud-summary .risk-val {
+            color: var(--risk-color);
+        }
+
+        .hud-summary .ready-val {
+            color: var(--success-color);
+        }
+
+        .status-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin: 3rem auto;
+            max-width: 500px;
+        }
+
+        .loader {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            overflow-x: auto;
+            margin-bottom: 3.5rem;
+            min-height: 400px;
+        }
+
+        h2 {
+            font-size: 1.45rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 18px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+
+        .risk-badge {
+            color: var(--risk-color);
+            font-weight: 600;
+        }
+
+        /* Enforce table width harmonies */
+        table[data-group] th:nth-child(13) {
+            min-width: 350px;
+        }
+
+        /* Actions / Note Input EXPANDED */
+        table[data-group] th:nth-child(12) {
+            min-width: 150px;
+        }
+
+        /* Original POS Note */
+
+        /* Original POS Note */
+        table[data-group] th:nth-child(8),
+        table[data-group] th:nth-child(9),
+        table[data-group] th:nth-child(10) {
+            width: 75px;
+            min-width: 75px;
+            font-size: 0.75rem;
+        }
+
+        table[data-group] th:nth-child(3) {
+            width: 85px;
+            min-width: 85px;
+        }
+
+        /* Risk/Ready Table Strict Alignments */
+        .table-risk-ready {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1100px;
+        }
+
+        .table-risk-ready th {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-risk-ready th:nth-child(1) {
+            width: 90px;
+        }
+
+        /* ORDER ID */
+        .table-risk-ready th:nth-child(2) {
+            width: 100px;
+        }
+
+        /* PHONE */
+        .table-risk-ready th:nth-child(3) {
+            width: 110px;
+        }
+
+        /* CITY */
+        .table-risk-ready th:nth-child(4) {
+            width: 330px;
+        }
+
+        /* ADDRESS */
+        .table-risk-ready th:nth-child(5) {
+            width: 60px;
+        }
+
+        /* COD */
+        .table-risk-ready th:nth-child(6) {
+            width: 100px;
+        }
+
+        /* CUST PROFILE */
+        .table-risk-ready th:nth-child(7) {
+            width: 120px;
+        }
+
+        /* LÍ DO HOÀN */
+        .table-risk-ready th:nth-child(8) {
+            width: 280px;
+        }
+
+        /* RISK REASON */
+
+        .ready-badge {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* TABS CSS */
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+
+        /* DELAY UI CSS */
+        .delay-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .d-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .d-card h3 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .d-card .val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-box canvas {
+            max-height: 350px !important;
+            width: 100% !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🛡️ ORDER MANAGEMENT SYSTEM</div>
+            <div class="tagline">FULLY AUTOMATED DASHBOARD</div>
+        </header>
+
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('risk')">Risk Orders</button>
+            <button class="tab-btn" onclick="switchTab('kw')">KW Risk Orders</button>
+            <button class="tab-btn" onclick="switchTab('delay')">Delay Orders</button>
+        </nav>
+
+        <!-- ================= RISK ORDERS TAB ================= -->
+        <div id="tab-risk" class="tab-pane">
+            <!-- AUTOMATION LINKS -->
+            <section class="config">
+                <input type="text" id="sheet1"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=589286689">
+                <input type="text" id="sheet2"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=1243266024">
+                <input type="text" id="sheet3"
+                    value="https://docs.google.com/spreadsheets/d/1x0PoumhXe0GZCdK7siVVnU-Kw91tEzmbTi2XY9Ud0X0/edit?gid=1648413723#gid=1648413723">
+                <input type="text" id="sheet4"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=2091298551#gid=2091298551">
+            </section>
+
+            <!-- SUMMARY ROW (V6.6) -->
+            <section id="hud" class="hud-summary hidden">
+                Sync total: <b id="totalSyncCount">0</b> orders |
+                Ready: <span class="ready-val" id="readySummaryCount">0</span> |
+                Risk: <span class="risk-val" id="riskSummaryCount">0</span>
+            </section>
+
+            <!-- STATUS -->
+            <div id="statusArea" class="status-box">
+                <div id="loader" class="loader"></div>
+                <div id="statusMsg" style="font-size: 1rem; color: var(--accent); font-weight: 600;">Connecting to J&T
+                    KSA...</div>
+            </div>
+
+            <!-- MAIN TABLES -->
+            <div id="results" class="hidden">
+                <!-- RISK TABLE (Primary) -->
+                <div class="table-card" style="border-top: 3px solid var(--risk-color);">
+                    <h2 style="color: var(--risk-color);">🚩 RISK ORDERS ( <span id="riskCountTitle">0</span> )</h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>RISK REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riskTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- READY TABLE (Secondary) -->
+                <div class="table-card" style="border-top: 3px solid var(--success-color);">
+                    <h2 style="color: var(--success-color);">✅ READY ORDERS ( <span id="readyCountTitle">0</span> )</h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="readyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- End Risk Tab -->
+
+        <!-- ================= KUWAIT RISK ORDERS TAB ================= -->
+        <div id="tab-kw" class="tab-pane hidden">
+            <!-- AUTOMATION LINKS -->
+            <section class="config">
+                <input type="text" id="sheet1_kw"
+                    value="https://docs.google.com/spreadsheets/d/1ZKXwrHj1wlenCCQ0r0_1RNi1GTWhkeKG9KlvT6ojB0k/edit?gid=1132060146#gid=1132060146">
+                <input type="text" id="sheet2_kw"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=1243266024">
+                <input type="text" id="sheet3_kw"
+                    value="https://docs.google.com/spreadsheets/d/1x0PoumhXe0GZCdK7siVVnU-Kw91tEzmbTi2XY9Ud0X0/edit?gid=1648413723#gid=1648413723">
+                <input type="text" id="sheet4_kw" value="">
+            </section>
+
+            <!-- SUMMARY ROW (V6.6) -->
+            <section id="hud_kw" class="hud-summary hidden">
+                Sync total: <b id="totalSyncCount_kw">0</b> orders |
+                Ready: <span class="ready-val" id="readySummaryCount_kw">0</span> |
+                Risk: <span class="risk-val" id="riskSummaryCount_kw">0</span>
+            </section>
+
+            <!-- STATUS -->
+            <div id="statusArea_kw" class="status-box">
+                <div id="loader_kw" class="loader"></div>
+                <div id="statusMsg_kw" style="font-size: 1rem; color: var(--accent); font-weight: 600;">Connecting to
+                    Kuwait...</div>
+            </div>
+
+            <!-- MAIN TABLES -->
+            <div id="results_kw" class="hidden">
+                <!-- RISK TABLE (Primary) -->
+                <div class="table-card" style="border-top: 3px solid var(--risk-color);">
+                    <h2 style="color: var(--risk-color);">🚩 RISK ORDERS ( <span id="riskCountTitle_kw">0</span> )</h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>RISK REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riskTableBody_kw"></tbody>
+                    </table>
+                </div>
+
+                <!-- READY TABLE (Secondary) -->
+                <div class="table-card" style="border-top: 3px solid var(--success-color);">
+                    <h2 style="color: var(--success-color);">✅ READY ORDERS ( <span id="readyCountTitle_kw">0</span> )
+                    </h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="readyTableBody_kw"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- End KW Risk Tab -->
+
+        <!-- ================= DELAY ORDERS TAB ================= -->
+        <div id="tab-delay" class="tab-pane hidden">
+            <div class="table-card" style="margin-bottom:2rem; padding: 1.5rem; text-align: center;">
+                <button onclick="window.delayModule.runDelayCheck()"
+                    style="padding:8px 16px; background:var(--accent); border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Fetch
+                    & Analyze</button>
+                <button onclick="window.delayModule.exportData()"
+                    style="padding:8px 16px; background:#4ade80; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-left:10px;">Export
+                    to CSV</button>
+
+                <div style="margin-top:15px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <select id="filterMarket"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Markets</option>
+                    </select>
+                    <select id="filterCarrier"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Carriers</option>
+                    </select>
+                    <select id="filterCity"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Cities</option>
+                    </select>
+                    <select id="filterStatus"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Statuses</option>
+                    </select>
+                    <select id="filterTag"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Tags</option>
+                    </select>
+                    <input type="date" id="filterDateFrom"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                    <input type="date" id="filterDateTo"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                    <!-- EXPORT & STATUS MSG -->
+                    <div id="delayStatus" style="font-weight: 600; color: var(--accent); margin-bottom:10px;">Waiting to
+                        fetch...</div>
+                    <div id="delayDebug"
+                        style="margin-top:10px; color:#334155; font-size: 0.75rem; text-align:left; max-height:100px; overflow-y:auto; background:#f1f5f9; padding:8px; border-radius:4px; border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+
+                <div class="delay-cards">
+                    <div class="d-card">
+                        <h3>Total In-Progress</h3>
+                        <div class="val" id="d_total">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #facc15;">
+                        <h3>Need Follow</h3>
+                        <div class="val" style="color:#facc15" id="d_need_follow">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #ef4444;">
+                        <h3>Overdue / Stuck</h3>
+                        <div class="val" style="color:#ef4444" id="d_overdue">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #a855f7;">
+                        <h3>Appointment Follow</h3>
+                        <div class="val" style="color:#a855f7" id="d_appt">0</div>
+                    </div>
+                    <div class="d-card">
+                        <h3>Fail Tags Count</h3>
+                        <div class="val" id="d_fail_tags">0</div>
+                    </div>
+                    <div class="d-card">
+                        <h3>Avg Delivery Time</h3>
+                        <div class="val" id="d_avg_time">0d</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid"
+                    style="display: grid; width: 100%; grid-template-columns: 1fr 1fr; grid-template-rows: auto; grid-auto-rows: 360px; gap: 1.5rem;">
+                    <!-- Left: 2 Pie/Doughnut charts -->
+                    <div class="chart-box"><canvas id="chartCarriers"></canvas></div>
+                    <div class="chart-box"><canvas id="chartCities"></canvas></div>
+                    <div class="chart-box"><canvas id="chartAge"></canvas></div>
+                    <div class="chart-box"><canvas id="chartAvgCity"></canvas></div>
+                    <!-- Full-width horizontal bar charts -->
+                    <div class="chart-box"
+                        style="grid-column: span 2; max-height: 550px; overflow-y: auto; display: block; align-items: start;">
+                        <div id="chartTagReturnWrapper" style="position: relative; width: 100%;">
+                            <canvas id="chartTagReturn" style="max-height: none !important;"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box"
+                        style="grid-column: span 2; max-height: 550px; overflow-y: auto; display: block; align-items: start;">
+                        <div id="chartCityReturnWrapper" style="position: relative; width: 100%;">
+                            <canvas id="chartCityReturn" style="max-height: none !important;"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Need Follow Table -->
+                <div class="table-card" style="border-top: 3px solid #facc15;">
+                    <h2 style="color: #facc15; display:flex; justify-content:space-between; align-items:center;">
+                        <span>⚠️ NEED FOLLOW <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('needFollow')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            NEED FOLLOW</button>
+                    </h2>
+                    <table data-group="needFollow">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayNeedFollowTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Overdue/Stuck Table -->
+                <div class="table-card" style="border-top: 3px solid #ef4444;">
+                    <h2 style="color: #ef4444; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🚨 OVERDUE / STUCK <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('overdue')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            OVERDUE</button>
+                    </h2>
+                    <table data-group="overdue">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayOverdueTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Appointment Follow Table -->
+                <div class="table-card" style="border-top: 3px solid #a855f7;">
+                    <h2 style="color: #a855f7; display:flex; justify-content:space-between; align-items:center;">
+                        <span>📅 APPOINTMENT FOLLOW <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('appointment')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            APPOINTMENT</button>
+                    </h2>
+                    <table data-group="appointment">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayApptTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function switchTab(tabId, element = null) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+
+                if (element) {
+                    element.classList.add('active');
+                } else if (event && event.target && event.target.tagName === 'BUTTON') {
+                    event.target.classList.add('active');
+                } else {
+                    const btn = document.querySelector(`button[onclick*="'${tabId}'"]`);
+                    if (btn) btn.classList.add('active');
+                }
+
+                document.getElementById('tab-' + tabId).classList.remove('hidden');
+                localStorage.setItem('active_tab', tabId);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const activeTab = localStorage.getItem('active_tab');
+                if (activeTab) {
+                    switchTab(activeTab);
+                }
+            });
+        </script>
+        <script src="app_v2.js?v=6"></script>
+        <script src="app_kw.js?v=1"></script>
+        <script src="delay_v27.js?v=17"></script>
+</body>
+
+</html>

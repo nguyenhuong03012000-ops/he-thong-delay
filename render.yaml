@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: pancake-delay-monitoring-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+        # Note: Set this securely in the Render Dashboard after deploying.
+      - key: GOOGLE_SERVICE_ACCOUNT_EMAIL
+        sync: false
+      - key: GOOGLE_PRIVATE_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

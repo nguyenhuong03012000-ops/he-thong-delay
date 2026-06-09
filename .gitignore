@@ -1,0 +1,39 @@
+﻿# Dependencies
+node_modules/
+vendor/
+venv/
+__pycache__/
+*.pyc
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build
+dist/
+build/
+.next/
+out/
+
+# IDE and OS
+.vscode/settings.json
+.idea/
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+tmp/
+
+# Test coverage
+coverage/
+
+# === KEEP (AI can doc) ===
+# memory-bank/     <- KEEP
+# .context/        <- KEEP
+# .agents/         <- KEEP
+# AGENTS.md        <- KEEP
+# .cursorrules     <- KEEP
+# docs/            <- KEEP

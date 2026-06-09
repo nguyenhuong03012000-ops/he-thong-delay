@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSA Order Risk Dashboard - V6.6 Restoration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #7dd3fc;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --risk-color: #fb7185;
+            --success-color: #4ade80;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Automation Section (Hidden Inputs) */
+        .config {
+            display: none;
+        }
+
+        /* SUMMARY ROW (V6.6) */
+        .hud-summary {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .hud-summary b {
+            color: var(--accent);
+        }
+
+        .hud-summary .risk-val {
+            color: var(--risk-color);
+        }
+
+        .hud-summary .ready-val {
+            color: var(--success-color);
+        }
+
+        .status-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin: 3rem auto;
+            max-width: 500px;
+        }
+
+        .loader {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            overflow-x: auto;
+            margin-bottom: 3.5rem;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 18px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+
+        .risk-badge {
+            color: var(--risk-color);
+            font-weight: 600;
+        }
+
+        .ready-badge {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🛡️ ORDER RISK WARNING</div>
+            <div class="tagline">FULLY AUTOMATED KSA SYSTEM</div>
+        </header>
+
+        <!-- AUTOMATION LINKS -->
+        <section class="config">
+            <input type="text" id="sheet1"
+                value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=589286689">
+            <input type="text" id="sheet2"
+                value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=1243266024">
+            <input type="text" id="sheet3"
+                value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=2091298551#gid=2091298551">
+        </section>
+
+        <!-- SUMMARY ROW (V6.6) -->
+        <section id="hud" class="hud-summary hidden">
+            Sync total: <b id="totalSyncCount">0</b> orders |
+            Ready: <span class="ready-val" id="readySummaryCount">0</span> |
+            Risk: <span class="risk-val" id="riskSummaryCount">0</span>
+        </section>
+
+        <!-- STATUS -->
+        <div id="statusArea" class="status-box">
+            <div id="loader" class="loader"></div>
+            <div id="statusMsg" style="font-size: 1rem; color: var(--accent); font-weight: 600;">Connecting to J&T
+                KSA...</div>
+        </div>
+
+        <!-- MAIN TABLES -->
+        <div id="results" class="hidden">
+            <!-- RISK TABLE (Primary) -->
+            <div class="table-card" style="border-top: 3px solid var(--risk-color);">
+                <h2 style="color: var(--risk-color);">🚩 RISK ORDERS ( <span id="riskCountTitle">0</span> )</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ORDER ID</th>
+                            <th>PHONE</th>
+                            <th>CITY</th>
+                            <th>ADDRESS</th>
+                            <th>COD</th>
+                            <th>CUST PROFILE</th>
+                            <th>RISK REASON</th>
+                        </tr>
+                    </thead>
+                    <tbody id="riskTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- READY TABLE (Secondary) -->
+            <div class="table-card" style="border-top: 3px solid var(--success-color);">
+                <h2 style="color: var(--success-color);">✅ READY ORDERS ( <span id="readyCountTitle">0</span> )</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ORDER ID</th>
+                            <th>PHONE</th>
+                            <th>CITY</th>
+                            <th>ADDRESS</th>
+                            <th>COD</th>
+                            <th>CUST PROFILE</th>
+                            <th>REASON</th>
+                        </tr>
+                    </thead>
+                    <tbody id="readyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+
+</html>

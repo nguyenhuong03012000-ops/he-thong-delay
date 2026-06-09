@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSA Order Management Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Outfit:wght@800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --accent: #0284c7;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --risk-color: #e11d48;
+            --success-color: #059669;
+            --border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Excel-Style Filters */
+        .excel-filter {
+            position: relative;
+            width: 100%;
+            min-width: 130px;
+            max-width: 200px;
+            text-align: left;
+            margin-top: 4px;
+            font-weight: normal;
+        }
+
+        .ef-header {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            padding: 4px 6px;
+            color: #0f172a;
+            cursor: pointer;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ef-header::after {
+            content: "▼";
+            font-size: 8px;
+            margin-left: 5px;
+        }
+
+        .ef-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            width: max-content;
+            min-width: 100%;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .ef-dropdown label {
+            display: block;
+            padding: 4px 6px;
+            cursor: pointer;
+            color: #0f172a;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-bottom: 0;
+        }
+
+        .ef-dropdown label:hover {
+            background: #f1f5f9;
+        }
+
+        .ef-dropdown input[type="checkbox"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        select option {
+            color: black !important;
+            background: white !important;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            color: var(--accent);
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .tagline {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 98%;
+            width: 98%;
+            margin: 0 auto;
+        }
+
+        /* Automation Section (Hidden Inputs) */
+        .config {
+            display: none;
+        }
+
+        /* SUMMARY ROW (V6.6) */
+        .hud-summary {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .hud-summary b {
+            color: var(--accent);
+        }
+
+        .hud-summary .risk-val {
+            color: var(--risk-color);
+        }
+
+        .hud-summary .ready-val {
+            color: var(--success-color);
+        }
+
+        .status-box {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            margin: 3rem auto;
+            max-width: 500px;
+        }
+
+        .loader {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            overflow-x: auto;
+            margin-bottom: 3.5rem;
+            min-height: 400px;
+        }
+
+        h2 {
+            font-size: 1.45rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 18px 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: top;
+            font-size: 0.95rem;
+        }
+
+        .risk-badge {
+            color: var(--risk-color);
+            font-weight: 600;
+        }
+
+        /* Enforce table width harmonies */
+        table[data-group] th:nth-child(13) {
+            min-width: 350px;
+        }
+
+        /* Actions / Note Input EXPANDED */
+        table[data-group] th:nth-child(12) {
+            min-width: 150px;
+        }
+
+        /* Original POS Note */
+
+        /* Original POS Note */
+        table[data-group] th:nth-child(8),
+        table[data-group] th:nth-child(9),
+        table[data-group] th:nth-child(10) {
+            width: 75px;
+            min-width: 75px;
+            font-size: 0.75rem;
+        }
+
+        table[data-group] th:nth-child(3) {
+            width: 85px;
+            min-width: 85px;
+        }
+
+        /* Risk/Ready Table Strict Alignments */
+        .table-risk-ready {
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1100px;
+        }
+
+        .table-risk-ready th {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-risk-ready th:nth-child(1) {
+            width: 90px;
+        }
+
+        /* ORDER ID */
+        .table-risk-ready th:nth-child(2) {
+            width: 100px;
+        }
+
+        /* PHONE */
+        .table-risk-ready th:nth-child(3) {
+            width: 110px;
+        }
+
+        /* CITY */
+        .table-risk-ready th:nth-child(4) {
+            width: 330px;
+        }
+
+        /* ADDRESS */
+        .table-risk-ready th:nth-child(5) {
+            width: 60px;
+        }
+
+        /* COD */
+        .table-risk-ready th:nth-child(6) {
+            width: 100px;
+        }
+
+        /* CUST PROFILE */
+        .table-risk-ready th:nth-child(7) {
+            width: 120px;
+        }
+
+        /* LÍ DO HOÀN */
+        .table-risk-ready th:nth-child(8) {
+            width: 280px;
+        }
+
+        /* RISK REASON */
+
+        .ready-badge {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* TABS CSS */
+        .tabs-nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 10px 20px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+        }
+
+        /* DELAY UI CSS */
+        .delay-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .d-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .d-card h3 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .d-card .val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            max-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-box canvas {
+            max-height: 350px !important;
+            width: 100% !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🛡️ ORDER MANAGEMENT SYSTEM</div>
+            <div class="tagline">FULLY AUTOMATED DASHBOARD</div>
+        </header>
+
+        <nav class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('risk')">Risk Orders</button>
+            <button class="tab-btn" onclick="switchTab('delay')">Delay Orders</button>
+        </nav>
+
+        <!-- ================= RISK ORDERS TAB ================= -->
+        <div id="tab-risk" class="tab-pane">
+            <!-- AUTOMATION LINKS -->
+            <section class="config">
+                <input type="text" id="sheet1"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=589286689">
+                <input type="text" id="sheet2"
+                    value="https://docs.google.com/spreadsheets/d/1s_kiZmo0K4-xVoceA31Bk3YtZ_HiSygjM1D2EF6bjMc/edit?pli=1&gid=1243266024">
+                <input type="text" id="sheet3"
+                    value="https://docs.google.com/spreadsheets/d/1x0PoumhXe0GZCdK7siVVnU-Kw91tEzmbTi2XY9Ud0X0/edit?gid=1648413723#gid=1648413723">
+            </section>
+
+            <!-- SUMMARY ROW (V6.6) -->
+            <section id="hud" class="hud-summary hidden">
+                Sync total: <b id="totalSyncCount">0</b> orders |
+                Ready: <span class="ready-val" id="readySummaryCount">0</span> |
+                Risk: <span class="risk-val" id="riskSummaryCount">0</span>
+            </section>
+
+            <!-- STATUS -->
+            <div id="statusArea" class="status-box">
+                <div id="loader" class="loader"></div>
+                <div id="statusMsg" style="font-size: 1rem; color: var(--accent); font-weight: 600;">Connecting to J&T
+                    KSA...</div>
+            </div>
+
+            <!-- MAIN TABLES -->
+            <div id="results" class="hidden">
+                <!-- RISK TABLE (Primary) -->
+                <div class="table-card" style="border-top: 3px solid var(--risk-color);">
+                    <h2 style="color: var(--risk-color);">🚩 RISK ORDERS ( <span id="riskCountTitle">0</span> )</h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>RISK REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="riskTableBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- READY TABLE (Secondary) -->
+                <div class="table-card" style="border-top: 3px solid var(--success-color);">
+                    <h2 style="color: var(--success-color);">✅ READY ORDERS ( <span id="readyCountTitle">0</span> )</h2>
+                    <table class="table-risk-ready">
+                        <thead>
+                            <tr>
+                                <th>ORDER ID</th>
+                                <th>PHONE</th>
+                                <th>CITY</th>
+                                <th>ADDRESS</th>
+                                <th>COD</th>
+                                <th>CUST PROFILE</th>
+                                <th>LÍ DO HOÀN</th>
+                                <th>REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="readyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- End Risk Tab -->
+
+        <!-- ================= DELAY ORDERS TAB ================= -->
+        <div id="tab-delay" class="tab-pane hidden">
+            <div class="table-card" style="margin-bottom:2rem; padding: 1.5rem; text-align: center;">
+                <button onclick="window.delayModule.runDelayCheck()"
+                    style="padding:8px 16px; background:var(--accent); border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Fetch
+                    & Analyze</button>
+                <button onclick="window.delayModule.exportData()"
+                    style="padding:8px 16px; background:#4ade80; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-left:10px;">Export
+                    to CSV</button>
+
+                <div style="margin-top:15px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    <select id="filterMarket"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Markets</option>
+                    </select>
+                    <select id="filterCarrier"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Carriers</option>
+                    </select>
+                    <select id="filterCity"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Cities</option>
+                    </select>
+                    <select id="filterStatus"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Statuses</option>
+                    </select>
+                    <select id="filterTag"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                        <option value="">All Tags</option>
+                    </select>
+                    <input type="date" id="filterDateFrom"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                    <input type="date" id="filterDateTo"
+                        style="padding:6px; background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1; border-radius:4px;">
+                    <!-- EXPORT & STATUS MSG -->
+                    <div id="delayStatus" style="font-weight: 600; color: var(--accent); margin-bottom:10px;">Waiting to
+                        fetch...</div>
+                    <div id="delayDebug"
+                        style="margin-top:10px; color:#334155; font-size: 0.75rem; text-align:left; max-height:100px; overflow-y:auto; background:#f1f5f9; padding:8px; border-radius:4px; border: 1px solid #cbd5e1;">
+                    </div>
+                </div>
+
+                <div class="delay-cards">
+                    <div class="d-card">
+                        <h3>Total In-Progress</h3>
+                        <div class="val" id="d_total">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #facc15;">
+                        <h3>Need Follow</h3>
+                        <div class="val" style="color:#facc15" id="d_need_follow">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #ef4444;">
+                        <h3>Overdue / Stuck</h3>
+                        <div class="val" style="color:#ef4444" id="d_overdue">0</div>
+                    </div>
+                    <div class="d-card" style="border-bottom: 4px solid #a855f7;">
+                        <h3>Appointment Follow</h3>
+                        <div class="val" style="color:#a855f7" id="d_appt">0</div>
+                    </div>
+                    <div class="d-card">
+                        <h3>Fail Tags Count</h3>
+                        <div class="val" id="d_fail_tags">0</div>
+                    </div>
+                    <div class="d-card">
+                        <h3>Avg Delivery Time</h3>
+                        <div class="val" id="d_avg_time">0d</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid"
+                    style="display: grid; width: 100%; grid-template-columns: 1fr 1fr; grid-template-rows: auto; grid-auto-rows: 360px; gap: 1.5rem;">
+                    <!-- Left: 2 Pie/Doughnut charts -->
+                    <div class="chart-box"><canvas id="chartCarriers"></canvas></div>
+                    <div class="chart-box"><canvas id="chartCities"></canvas></div>
+                    <div class="chart-box"><canvas id="chartAge"></canvas></div>
+                    <div class="chart-box"><canvas id="chartAvgCity"></canvas></div>
+                    <!-- Full-width horizontal bar charts -->
+                    <div class="chart-box" style="grid-column: span 2;"><canvas id="chartTagReturn"></canvas></div>
+                    <div class="chart-box" style="grid-column: span 2;"><canvas id="chartCityReturn"></canvas></div>
+                </div>
+
+                <!-- Need Follow Table -->
+                <div class="table-card" style="border-top: 3px solid #facc15;">
+                    <h2 style="color: #facc15; display:flex; justify-content:space-between; align-items:center;">
+                        <span>⚠️ NEED FOLLOW <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('needFollow')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            NEED FOLLOW</button>
+                    </h2>
+                    <table data-group="needFollow">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayNeedFollowTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Overdue/Stuck Table -->
+                <div class="table-card" style="border-top: 3px solid #ef4444;">
+                    <h2 style="color: #ef4444; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🚨 OVERDUE / STUCK <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('overdue')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            OVERDUE</button>
+                    </h2>
+                    <table data-group="overdue">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayOverdueTbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Appointment Follow Table -->
+                <div class="table-card" style="border-top: 3px solid #a855f7;">
+                    <h2 style="color: #a855f7; display:flex; justify-content:space-between; align-items:center;">
+                        <span>📅 APPOINTMENT FOLLOW <span class="tbl-count"
+                                style="font-size:12px; font-weight:normal; margin-left:10px; color:#fff;"></span></span>
+                        <button onclick="delayModule.exportLocal('appointment')"
+                            style="padding:4px 10px; background:#10b981; border:none; border-radius:4px; color:white; font-size:12px; cursor:pointer;">Export
+                            APPOINTMENT</button>
+                    </h2>
+                    <table data-group="appointment">
+                        <thead>
+                            <tr style="vertical-align: top;">
+                                <th>Order ID</th>
+                                <th>Tracking</th>
+                                <th>Carrier<br>
+                                    <div class="excel-filter" data-col="carrier">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>City</th>
+                                <th>Customer<br><input type="text" class="tbl-filter-customer" placeholder="Search..."
+                                        style="width:100%; max-width:120px; font-size:11px; padding:3px; margin-top:4px; background:rgba(255,255,255,0.9); color:black; border:none; border-radius:3px;">
+                                </th>
+                                <th>Tags<br>
+                                    <div class="excel-filter" data-col="all_tags">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Status<br>
+                                    <div class="excel-filter" data-col="status">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Ship Date</th>
+                                <th>Days Ship<br>
+                                    <div class="excel-filter" data-col="days_since_ship">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Days Upd<br>
+                                    <div class="excel-filter" data-col="days_since_update">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>Reason<br>
+                                    <div class="excel-filter" data-col="reason">
+                                        <div class="ef-header">All</div>
+                                        <div class="ef-dropdown"></div>
+                                    </div>
+                                </th>
+                                <th>POS Note</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="delayApptTbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function switchTab(tabId, element = null) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+
+                if (element) {
+                    element.classList.add('active');
+                } else if (event && event.target && event.target.tagName === 'BUTTON') {
+                    event.target.classList.add('active');
+                } else {
+                    const btn = document.querySelector(`button[onclick*="'${tabId}'"]`);
+                    if (btn) btn.classList.add('active');
+                }
+
+                document.getElementById('tab-' + tabId).classList.remove('hidden');
+                localStorage.setItem('active_tab', tabId);
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const activeTab = localStorage.getItem('active_tab');
+                if (activeTab && activeTab === 'delay') {
+                    switchTab('delay');
+                }
+            });
+        </script>
+        
+        
+
+<!-- ============================================== -->
+<!-- HỆ THỐNG APP_V2 NỘI BỘ (Chạy độc lập không cần file ngoài) -->
+<!-- ============================================== -->
+<script>
+/* 
+  KSA Order Risk PRO V7.4 (SENSE-ALL ADDRESS AI) 🛡️🇸🇦🚀
+  User Screen Match: 7566 Ar Rahmaniyah, CNMN3622, JESA/405...
+  - STARTING NUMBERS: A 3-5 digit number at start = 100% SAFE (Plot Number).
+  - DISTRICT PREFIXES: Al, Ar, An, As, Ash, At...
+  - V7.1 SUGGESTION: Only suggest city in notes, NO auto-fill.
+*/
+
+async function runCheck() {
+    setLoading(true);
+    setStatus('V7.4 Syncing: Sense-All Address AI...');
+
+    try {
+        console.log('[V7.4] Syncing Links (Sense-All Heuristics)...');
+        const [ordersData, profilesData, tagsData] = await Promise.all([
+            fetchData(1), // JNT KSA (gid=589)
+            fetchData(2), // PosSheets (gid=124)
+            fetchData(3)  // POS Tags (gid=164)
+        ]);
+
+        if (!ordersData || ordersData.length === 0) {
+            setStatus('V7.4 Error: Data unavailable.');
+            return;
+        }
+
+        setStatus(`V7.4 Analysis: ${ordersData.length} records...`);
+        const results = processOrders(ordersData, profilesData, tagsData);
+
+        renderResults(results);
+
+        // Final visibility fix
+        document.getElementById('hud').classList.remove('hidden');
+        document.getElementById('results').classList.remove('hidden');
+        document.getElementById('statusArea').classList.add('hidden');
+
+        setStatus(`V7.4 Ready: ${ordersData.length} records checked.`);
+    } catch (error) {
+        console.error('[V7.4 Error]', error);
+        setStatus('V7.4 Sync Error: ' + error.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+/** 
+ * Universal 9-digit Saudi Phone Normalization (V7.6)
+*/
+function getMatchKey(p) {
+    if (!p) return '';
+    let clean = p.toString().replace(/[^0-9]/g, '');
+    if (clean.length === 14 && clean.startsWith('009665')) return clean.substring(5);
+    if (clean.length === 13 && clean.startsWith('09665')) return clean.substring(4);
+    if (clean.length === 12 && clean.startsWith('9665')) return clean.substring(3);
+    if (clean.length === 10 && clean.startsWith('05')) return clean.substring(1);
+    if (clean.length === 9 && clean.startsWith('5')) return clean;
+    return '';
+}
+
+const CITIES_SA = ["riyadh", "jeddah", "makkah", "medina", "dammam", "taif", "tabuk", "buraidah", "hail", "jizan", "najran", "abha", "arar", "sakaka", "bahah", "jubail", "yanbu", "khobar", "asir", "qassim", "sabya", "kharj", "unayzah", "qatif", "tabarjal", "dawadmi", "bish", "hofuf", "mubarraz", "khafji", "hafar al-batin", "hafar al batin", "thurwal", "rabigh", "yanbu al bahr", "majmaah", "zulfi", "al-ula", "sharurah", "qurayyat", "duwadimi", "bukayriyah", "badaya", "mithnab", "habuna", "bisha", "baljurashi", "namas", "khulays", "ranyah", "layla", "shakra", "sulayyil", "dawadmi", "dhahran", "taraib", "ras tanura", "tathlith", "waajh", "amluj", "qunfudhah", "layth", "rabigh", "khayber", "al ghazzal", "dumah al jandal", "turaif", "qaisumah", "rafha", "makhwah", "bariq", "majaridah", "samtah", "abu arish", "ahad masarihah", "damad", "aydabi", "baish", "darb"];
+
+/** 
+ * AUTO-SENSING COLUMN LOGIC (V7.4)
+*/
+function autoSenseColumns(rows) {
+    const idx = { id: 1, phone: 3, city: 5, address: 6, cod: 14 };
+    if (!rows || rows.length === 0) return idx;
+    const row = rows[0];
+    const keys = Object.keys(row);
+
+    for (let k of keys) {
+        if (getMatchKey(row[k])) { idx.phone = parseInt(k.split('_')[1]); break; }
+    }
+
+    // 2. Sense Address (longest text column usually)
+    let maxLen = 0;
+    for (let k of keys) {
+        const i = parseInt(k.split('_')[1]);
+        if (i === idx.phone || i === 0 || i === 1) continue;
+        const val = (row[k] || '').toString();
+        if (val.length > maxLen) { maxLen = val.length; idx.address = i; }
+    }
+
+    // 3. Sense City (from remaining columns)
+    for (let k of keys) {
+        const i = parseInt(k.split('_')[1]);
+        if (i === idx.phone || i === idx.address || i === 0 || i === 1) continue;
+        const val = (row[k] || '').toString().toLowerCase();
+        if (CITIES_SA.some(c => val === c || val.includes(c))) {
+            idx.city = i;
+            break;
+        }
+    }
+    // 4. Sense COD
+    for (let k of keys) {
+        const i = parseInt(k.split('_')[1]);
+        if (i === idx.phone || i === idx.city || i === idx.address) continue;
+        const val = (row[k] || '').toString().replace(',', '.');
+        const n = parseFloat(val);
+        if (!isNaN(n) && n >= 10 && n < 5000) { idx.cod = i; break; }
+    }
+    idx.id = 1;
+    return idx;
+}
+
+/** 
+ * AI CITY RECOVERY (V7.4)
+*/
+function suggestCityAI(address) {
+    if (!address) return null;
+    const addrLow = address.toLowerCase();
+    for (let city of CITIES_SA) {
+        if (addrLow.includes(city)) return city.charAt(0).toUpperCase() + city.slice(1);
+    }
+    return null;
+}
+
+/** 
+ * SENSE-ALL HIGH-PRECISION ADDRESS ANALYSIS ENGINE (V7.4)
+*/
+function evaluateAddress(address, city) {
+    if (!address) return { isRisk: true, reasons: ["Địa chỉ trống"], notes: [] };
+    const addrLow = address.trim().toLowerCase();
+
+    // 1. Plot Number Sensing: Starts with 3-5 digits (e.g., 7566 Ar Rahmaniyah)
+    const startsWithPlotNumber = /^[0-9]{3,5}/.test(address.trim());
+    const hasNumericCode = /\d{4,5}/.test(addrLow);
+
+    // 2. District & Prefix Sensing
+    const hasSA_Prefix = /(al|ar|an|as|ash|at|ad|az|al-|ar-|an-)\s[a-z]{3,}/i.test(addrLow);
+    const hasHouseInfo = /(house|no\.|no\s|villa|vila|home|bldg|building|room|unit|floor|apt|apartment|flat|makhzin|warehouse)/i.test(addrLow);
+    const hasBusinessInfo = /(store|farm|shop|market|pharmacy|center|clinic|hospital|airport|electricity|company|office|hq|tower|villa)/i.test(addrLow);
+
+    // 3. National Address Support (CNMN3622 or JESA/405)
+    const isNationalAddress = /[A-Z]{4}\d{4}/i.test(address) || /[A-Z]{4}\/\d{3}/i.test(address) || /\b[A-Z]{1,3}\d{1,4}\b/.test(address);
+
+    // 4. Ultimate Precision Decision (V7.4)
+    // If it starts with a Plot number and has a district prefix, it's 100% Reliable.
+    const isReliable = isNationalAddress || startsWithPlotNumber || (hasSA_Prefix && hasNumericCode) || hasHouseInfo || hasBusinessInfo;
+
+    const notes = [];
+    if (isNationalAddress) notes.push("🇸🇦 National Address Match");
+    if (startsWithPlotNumber) notes.push("🔢 Start with Plot Number");
+    if (hasSA_Prefix) notes.push("🏘️ District prefix detected");
+    if (hasBusinessInfo) notes.push("🏠 Business/Location info");
+
+    const errors = [];
+    if (!city || city.length < 2) errors.push("Thiếu thành phố");
+    if (!isReliable && address.length < 15) errors.push("Địa chỉ mập mờ");
+    if (!isReliable) errors.push("Thiếu chi tiết (Khách lạ)");
+
+    return {
+        isRisk: errors.length > 0,
+        reasons: errors,
+        notes: notes,
+        isReliable: isReliable
+    };
+}
+
+/** 
+ * CORE LOGIC ENGINE (V7.4)
+*/
+function processOrders(orders, profiles, tagsData) {
+    const ready = [];
+    const risk = [];
+
+    // Map POS Tags (Link 3)
+    const tagsMap = new Map();
+    let noteColSheet3 = -1;
+    if (tagsData && tagsData.headers) {
+        noteColSheet3 = tagsData.headers.findIndex(h => h && h.toLowerCase().includes('ghi chú'));
+    }
+
+    if (tagsData) {
+        tagsData.forEach(row => {
+            const mk = getMatchKey(row['col_2']); // Phone C
+            if (mk) {
+                const tagStr = (row['col_9'] || '').toString(); // Thẻ J
+                let noteStr = noteColSheet3 >= 0 ? (row['col_' + noteColSheet3] || '').toString().trim() : '';
+
+                if (tagStr.trim() || noteStr) {
+                    if (!tagsMap.has(mk)) tagsMap.set(mk, { reasons: new Set(), notes: new Set() });
+
+                    let reasons = tagStr.split(/[,●\n|]+/)
+                        .map(t => t.trim())
+                        .filter(t => t && t.toLowerCase() !== 'giao không thành');
+
+                    reasons.forEach(r => tagsMap.get(mk).reasons.add(r));
+                    if (noteStr && noteStr !== '-') tagsMap.get(mk).notes.add(noteStr);
+                }
+            }
+        });
+    }
+
+    // Map Profiles (Link 2 & Link 3) - Auto-detect grouped vs raw list regardless of where user pasted it
+    const profileMap = new Map();
+
+    // Merge source data to find raw lists
+    let allProfileRows = profiles.concat(tagsData || []);
+    let isRawList = false;
+
+    // Check first 20 rows of profiles
+    for (let i = 0; i < Math.min(20, profiles.length); i++) {
+        const rowStr = Object.values(profiles[i] || {}).join(' ').toLowerCase();
+        if (rowStr.match(/(returned|delivered|đã nhận|đã hoàn|returning|canceled|hủy|đã xác nhận|đang đóng hàng|đã gửi hàng|shipped)/)) {
+            isRawList = true;
+            break;
+        }
+    }
+
+    // Check first 20 rows of tagsData if not found yet
+    if (!isRawList && tagsData) {
+        for (let i = 0; i < Math.min(20, tagsData.length); i++) {
+            const rowStr = Object.values(tagsData[i] || {}).join(' ').toLowerCase();
+            if (rowStr.match(/(returned|delivered|đã nhận|đã hoàn|returning|canceled|hủy|đã xác nhận|đang đóng hàng|đã gửi hàng|shipped)/)) {
+                isRawList = true;
+                break;
+            }
+        }
+    }
+
+    if (isRawList) {
+        let countedOrders = new Set();
+
+        allProfileRows.forEach(p => {
+            let phoneStr = "";
+            let statusStr = "";
+            let orderIdStr = "";
+
+            Object.values(p).forEach(val => {
+                const s = (val || '').toString().trim();
+
+                if (!s.toLowerCase().includes('date(')) {
+                    const mkRaw = getMatchKey(s);
+                    if (mkRaw && !phoneStr) phoneStr = mkRaw;
+                    if (s.match(/^\d{5,8}$/) && !orderIdStr) orderIdStr = s;
+                }
+
+                const sLow = s.toLowerCase();
+                if (['returned', 'returning', 'đã hoàn', 'hoàn'].some(x => sLow.includes(x))) statusStr = 'Returned';
+                else if (['delivered', 'đã nhận', 'thành công'].some(x => sLow.includes(x))) statusStr = 'Delivered';
+                else if (['đã gửi hàng', 'shipped', 'đang giao', 'undeliverable'].some(x => sLow.includes(x))) statusStr = 'Shipped';
+                else if (['canceled', 'hủy', 'cancel', 'đã huỷ'].some(x => sLow.includes(x))) statusStr = 'Canceled';
+                else if (['đã xác nhận', 'đang đóng hàng', 'chờ', 'mới'].some(x => sLow.includes(x))) statusStr = 'Pending';
+            });
+
+            const mk = getMatchKey(phoneStr);
+            if (mk && statusStr && ['Returned', 'Delivered', 'Shipped'].includes(statusStr)) {
+                const uniqueKey = mk + "_" + (orderIdStr || Math.random().toString());
+                if (!countedOrders.has(uniqueKey)) {
+                    countedOrders.add(uniqueKey);
+
+                    if (!profileMap.has(mk)) {
+                        profileMap.set(mk, { total: 0, returned: 0, rt: 0 });
+                    }
+                    const existing = profileMap.get(mk);
+
+                    existing.total += 1;
+                    if (statusStr === 'Returned') existing.returned += 1;
+                    existing.rt = existing.total > 0 ? Math.round((existing.returned / existing.total) * 100) : 0;
+                }
+            }
+        });
+    } else {
+        // Fallback for grouped POS 'Khách hàng' export
+        profiles.forEach(p => {
+            const mk = getMatchKey(p['col_2']); // Phone C
+            if (mk) {
+                const total = parseInt((p['col_3'] || '0').toString().replace(/[^0-9]/g, '')) || 0; // Total D
+                const returned = parseInt((p['col_4'] || '0').toString().replace(/[^0-9]/g, '')) || 0; // Returned E
+                if (profileMap.has(mk)) {
+                    const existing = profileMap.get(mk);
+                    existing.total = Math.max(existing.total, total);
+                    existing.returned = Math.max(existing.returned, returned);
+                    existing.rt = existing.total > 0 ? Math.round((existing.returned / existing.total) * 100) : 0;
+                } else {
+                    const rtPerc = total > 0 ? Math.round((returned / total) * 100) : 0;
+                    profileMap.set(mk, { total: total, returned: returned, rt: rtPerc });
+                }
+            }
+        });
+    }
+
+    const idx = autoSenseColumns(orders);
+
+    orders.forEach(row => {
+        const phoneRaw = (row['col_' + idx.phone] || '').toString();
+        const matchKey = getMatchKey(phoneRaw);
+        const address = (row['col_' + idx.address] || '').toString().trim();
+        const cod = parseFloat((row['col_' + idx.cod] || '0').toString().replace(',', '.')) || 0;
+
+        let city = (row['col_' + idx.city] || '').toString().trim();
+        let aiSuggest = "";
+
+        // AI CITY SUGGESTION (Only suggest, NO auto-fill)
+        if (!city || city === phoneRaw || city.length < 2) {
+            const suggested = suggestCityAI(address);
+            if (suggested) aiSuggest = `🔍 AI Suggest: ${suggested}`;
+        }
+
+        // New Order Internal Note (Sheet 1)
+        let noteColSheet1 = orders.headers ? orders.headers.findIndex(h => h && h.toLowerCase().includes('ghi chú')) : -1;
+        let newOrderNote = noteColSheet1 >= 0 ? (row['col_' + noteColSheet1] || '').toString().trim() : '';
+
+        const profile = profileMap.get(matchKey) || { total: 0, rt: 0 };
+        const profileStr = `Ord: ${profile.total} | Rt: ${profile.rt}%`;
+
+        const addrAi = evaluateAddress(address, city);
+
+        // Base Rules
+        let reasons = [];
+        if (cod <= 0 || !Number.isInteger(cod)) reasons.push(`COD <= 0`);
+        if (!matchKey) reasons.push("SĐT sai định dạng");
+        if (!city || city === phoneRaw) reasons.push("Thiếu thành phố");
+        if (profile.total >= 3 && profile.rt > 65) reasons.push(`Hoàn cao (${profile.rt}%)`);
+
+        // Ultimate SENSE-ALL Logic: Safe if Detailed OR Established History
+        if (reasons.length === 0 && addrAi.isRisk) {
+            if (profile.total > 0 && profile.rt <= 65) {
+                // Safe History
+            } else if (addrAi.isReliable) {
+                // Safe Detailed (V7.4 Plot # Support)
+            } else {
+                reasons = [...reasons, ...addrAi.reasons];
+            }
+        }
+
+        let returnReasonStr = "-";
+        let oldOrderNotes = [];
+
+        if (profile.returned > 0 || profile.rt > 0) {
+            if (tagsMap.has(matchKey)) {
+                const tagData = tagsMap.get(matchKey);
+                if (tagData.reasons.size > 0) returnReasonStr = Array.from(tagData.reasons).join(", ");
+                if (tagData.notes.size > 0) oldOrderNotes = Array.from(tagData.notes);
+            }
+        }
+
+        let combinedNotes = aiSuggest ? `<b>${aiSuggest}</b><br>` : "";
+        if (newOrderNote && newOrderNote !== '-') {
+            combinedNotes += `<span style="color:#3b82f6; font-weight:bold; font-size:11px;">[Note Mới]: ${newOrderNote}</span><br>`;
+        }
+        if (oldOrderNotes.length > 0) {
+            combinedNotes += `<span style="color:#ef4444; font-weight:bold; font-size:11px;">[Note Lịch Sử]: ${oldOrderNotes.join(' | ')}</span><br>`;
+        }
+        combinedNotes += addrAi.notes.join(' | ');
+
+        const data = {
+            id: (row['col_' + idx.id] || row['col_1'] || 'N/A').toString(),
+            phone: phoneRaw.trim(),
+            city: (city === phoneRaw) ? "---" : city,
+            address: address,
+            cod: cod,
+            profile: profileStr,
+            returnReason: returnReasonStr,
+            reasons: reasons,
+            aiNotes: combinedNotes,
+            aiLabel: (reasons.length > 0) ? "Risk" : "Safe",
+            isRisk: reasons.length > 0
+        };
+
+        if (reasons.length === 0) ready.push(data);
+        else risk.push(data);
+    });
+
+    return { ready, risk };
+}
+
+function renderResults(results) {
+    const rBody = document.getElementById('riskTableBody');
+    const rdBody = document.getElementById('readyTableBody');
+    rBody.innerHTML = ''; rdBody.innerHTML = '';
+
+    results.risk.forEach(o => rBody.appendChild(renderRow(o, true)));
+    results.ready.forEach(o => rdBody.appendChild(renderRow(o, false)));
+
+    document.getElementById('totalSyncCount').textContent = results.risk.length + results.ready.length;
+    document.getElementById('readySummaryCount').textContent = results.ready.length;
+    document.getElementById('riskSummaryCount').textContent = results.risk.length;
+    document.getElementById('riskCountTitle').textContent = results.risk.length;
+    document.getElementById('readyCountTitle').textContent = results.ready.length;
+}
+
+function renderRow(o, isRisk) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td><b>${o.id}</b></td>
+        <td>${o.phone}</td>
+        <td>${o.city}</td>
+        <td><div style="max-width:400px; font-size:0.8rem">${o.address}</div></td>
+        <td>${o.cod}</td>
+        <td>${o.profile}</td>
+        <td style="color:#fb923c; font-weight:600; font-size:0.85rem">${o.returnReason}</td>
+        <td>
+            <div style="color:${o.isRisk ? 'var(--risk-color)' : 'var(--success-color)'}; font-weight:bold; font-size:0.85rem">
+                ${o.isRisk ? o.reasons.join('. ') : '✅ Ready to send'}
+            </div>
+            <div style="color:#64748b; font-size:0.8rem; margin-top:4px">AI Note: ${o.aiLabel} (${o.aiNotes})</div>
+        </td>
+    `;
+    return tr;
+}
+
+function setLoading(isLoading) {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = isLoading ? 'inline-block' : 'none';
+}
+
+function setStatus(msg) {
+    const statusMsg = document.getElementById('statusMsg');
+    if (statusMsg) statusMsg.textContent = msg;
+}
+
+function fetchData(linkIndex) {
+    const el = document.getElementById(`sheet${linkIndex}`);
+    if (!el) return Promise.resolve([]);
+    const url = el.value;
+    const id = extractSheetId(url);
+    const gid = extractGid(url);
+    if (!id) return Promise.resolve([]);
+
+    return new Promise((resolve) => {
+        const callbackName = 'cb_' + Math.floor(Math.random() * 10000000);
+        window[callbackName] = (data) => {
+            if (!data || !data.table || !data.table.rows) resolve([]);
+            else {
+                const headers = data.table.cols ? data.table.cols.map(c => c.label || '') : [];
+                const arr = data.table.rows.map(row => {
+                    const obj = {};
+                    if (row.c) row.c.forEach((cell, i) => {
+                        obj['col_' + i] = cell ? (cell.v || '').toString() : null;
+                    });
+                    return obj;
+                });
+                arr.headers = headers;
+                resolve(arr);
+            }
+            delete window[callbackName];
+        };
+        const script = document.createElement('script');
+        script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json;responseHandler:${callbackName}${gid ? '&gid=' + gid : ''}`;
+        document.body.appendChild(script);
+        setTimeout(() => { if (window[callbackName]) { delete window[callbackName]; resolve([]); } }, 15000);
+    });
+}
+function extractSheetId(url) {
+    const matches = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    return (matches && matches[1]) ? matches[1] : null;
+}
+function extractGid(url) {
+    const matches = url.match(/gid=([0-9]+)/);
+    return (matches && matches[1]) ? matches[1] : null;
+}
+window.addEventListener('load', () => setTimeout(runCheck, 1000));
+setInterval(runCheck, 60000);
+
+</script>
+
+<!-- ============================================== -->
+<!-- HỆ THỐNG DELAY_V27 NỘI BỘ (Chạy độc lập không cần file ngoài) -->
+<!-- ============================================== -->
+<script>
+/**
+ * Delay Orders Monitoring Module
+ * Reads from POS API, validates required fields, computes delays, and renders dashboard.
+ */
+
+window.delayModule = (function () {
+    const API_KEY = "f6a4b7d3110c4dcdac0a5c04e3d81ea4";
+    const SHOP_ID = "714234971";
+
+    // Required fields per spec
+    const REQUIRED_FIELDS = [
+        "order_id", "tracking_number", "carrier", "market", "city",
+        "customer_name", "phone", "created_at", "shipped_at",
+        "latest_status", "latest_status_time", "order_tags", "shop_id"
+    ];
+
+    // Force API timestamps missing standard timezone boundaries into pure UTC context
+    function parsePancakeDate(dateString) {
+        if (!dateString) return null;
+        if (dateString.includes('T') && !dateString.endsWith('Z') && !dateString.includes('+')) {
+            return dateString + 'Z';
+        }
+        return dateString;
+    }
+
+    // Google Sheets Helpers
+    function extractSheetId(url) {
+        const match = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        return match ? match[1] : null;
+    }
+
+    function extractGid(url) {
+        const match = url.match(/[#&]gid=([0-9]+)/);
+        return match ? match[1] : '0';
+    }
+
+    function fetchSingleSheetTags(elId) {
+        const el = document.getElementById(elId);
+        if (!el) return Promise.resolve(new Map());
+        const url = el.value;
+        const id = extractSheetId(url);
+        const gid = extractGid(url);
+        if (!id) return Promise.resolve(new Map());
+
+        return new Promise((resolve) => {
+            const callbackName = 'cb_tags_' + Math.floor(Math.random() * 10000000);
+            window[callbackName] = (data) => {
+                const sheetTagsMap = new Map();
+                if (!data || !data.table || !data.table.rows) {
+                    resolve(sheetTagsMap);
+                    return;
+                }
+                data.table.rows.forEach(r => {
+                    if (r.c) {
+                        const orderId = r.c[0] && r.c[0].v ? r.c[0].v.toString().trim() : null;
+                        const tagsRaw = r.c[9] && r.c[9].v ? r.c[9].v.toString() : ''; // col_9 = J = Tags
+                        if (orderId && tagsRaw && tagsRaw !== '-' && tagsRaw !== 'undefined') {
+                            const tags = tagsRaw.split(/[,●\n|]+/).map(t => t.trim()).filter(Boolean);
+                            if (tags.length > 0) sheetTagsMap.set(orderId, tags);
+                        }
+                    }
+                });
+                resolve(sheetTagsMap);
+            };
+
+            const script = document.createElement('script');
+            script.src = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json;tq:;responseHandler:${callbackName}&gid=${gid}`;
+            script.onerror = () => resolve(new Map());
+            document.body.appendChild(script);
+        });
+    }
+
+    async function fetchTagsFromSheet() {
+        const maps = await Promise.all([
+            fetchSingleSheetTags('sheet1'),
+            fetchSingleSheetTags('sheet2'),
+            fetchSingleSheetTags('sheet3')
+        ]);
+
+        const merged = new Map();
+        maps.forEach(m => {
+            for (let [k, v] of m.entries()) {
+                if (!merged.has(k)) merged.set(k, []);
+                merged.set(k, [...merged.get(k), ...v]);
+            }
+        });
+        return merged;
+    }
+
+    // Isolate exact 'Đang đóng hàng' physical packing timestamp from historically stacked operations array 
+    function extractPackingTime(raw) {
+        if (raw.histories && Array.isArray(raw.histories)) {
+            const packEvent = raw.histories.find(h => h.status && h.status.new === 8); // 8 = Đang đóng hàng
+            if (packEvent && packEvent.updated_at) return packEvent.updated_at;
+        }
+        // Fallbacks
+        return raw.time_send_partner || raw.shipped_at || raw.inserted_at;
+    }
+
+    function validateOrder(order) {
+        const missing = [];
+        REQUIRED_FIELDS.forEach(field => {
+            if (order[field] === undefined) missing.push(field);
+        });
+        return missing;
+    }
+
+    function mapPancakeOrder(raw) {
+        let city = (raw.shipping_address && (raw.shipping_address.province || raw.shipping_address.province_name)) || raw.city || "Unknown";
+        let market = raw.market || "Unknown";
+
+        const ksaCities = ['riyadh', 'jeddah', 'makkah', 'medina', 'dammam', 'taif', 'tabuk', 'abha', 'khobar'];
+        const uaeCities = ['dubai', 'abu dhabi', 'sharjah', 'ajman', 'al ain', 'fujairah', 'rak', 'ras al khaimah'];
+
+        if (market === "Unknown") {
+            const lowerCity = city.toLowerCase();
+            if (ksaCities.some(c => lowerCity.includes(c))) market = "KSA";
+            else if (uaeCities.some(c => lowerCity.includes(c))) market = "UAE";
+        }
+
+        let rawCarrier = raw.carrier || raw.partner || raw.carrier_name || raw.partner_name || "Unknown";
+        let carrierStr = typeof rawCarrier === 'object' ? (rawCarrier.partner_name || rawCarrier.name || "Unknown") : String(rawCarrier);
+
+        // Fallback: Infer carrier from tags or shipping address
+        if (carrierStr === "Unknown" || carrierStr === "N/A" || !carrierStr || carrierStr === 'undefined') {
+            const rawTagsStr = JSON.stringify(raw.tags || raw.order_tags || []).toUpperCase();
+            if (rawTagsStr.includes('JNT UAE') || (rawTagsStr.includes('JNT') && market === 'UAE')) carrierStr = 'JNT UAE';
+            else if (rawTagsStr.includes('JNT') || rawTagsStr.includes('J&T')) carrierStr = 'JNT KSA';
+            else if (rawTagsStr.includes('IMILE')) carrierStr = 'IMILE';
+            else if (rawTagsStr.includes('WESHIP')) carrierStr = 'WESHIP KSA';
+        }
+
+        // Market inference based on Carrier
+        const carLow = carrierStr.toLowerCase();
+        if (market === "Unknown" || !market) {
+            if (carLow.includes("uae") || carLow === "jnt uae") market = "UAE";
+            else if (carLow.includes("ksa") || carLow.includes("weship") || carLow === "imile" || carLow === "jnt ksa") market = "KSA";
+        }
+
+        return {
+            order_id: raw.id || raw.order_id || "N/A",
+            tracking_number: (raw.partner && raw.partner.extend_code) || raw.tracking_number || raw.tracking_link || "N/A",
+            carrier: carrierStr,
+            market: market,
+            city: city,
+            customer_name: (raw.customer && raw.customer.name) || raw.bill_full_name || raw.customer_name || "Unknown",
+            phone: raw.bill_phone_number || (raw.customer && raw.customer.phone_number) || raw.phone || "Unknown",
+            created_at: parsePancakeDate(raw.inserted_at || raw.created_at || null),
+            shipped_at: parsePancakeDate(extractPackingTime(raw)),
+            latest_status: raw.status_name || raw.status || "Unknown",
+            latest_status_time: parsePancakeDate(raw.updated_at || raw.latest_status_time || null),
+            final_status: checkFinalStatus(raw.status_name || raw.status),
+            final_status_time: parsePancakeDate(checkFinalStatus(raw.status_name || raw.status) ? (raw.updated_at || raw.latest_status_time) : null),
+            order_tags: raw.tags || raw.order_tags || [],
+            shop_id: raw.shop_id || SHOP_ID,
+            page_id: raw.page_id || (raw.page && raw.page.id) || "1029988856864809",
+            customer_id: (raw.customer && raw.customer.id) || null,
+            conversation_link: (raw.customer && raw.customer.conversation_link) || null,
+            pos_link: raw.order_link || `https://pos.pancake.vn/shop/${SHOP_ID}/order?order_id=${raw.order_id || raw.id}`,
+            pos_note: [raw.note, raw.seller_note, raw.shipping_note, raw.customer_note, raw.partner_note].filter(Boolean).join(' | ')
+        };
+    }
+
+    function checkFinalStatus(status) {
+        if (!status) return null;
+        const s = status.toString().toLowerCase();
+        if (s.includes('delivered') || s.includes('received') || s.includes('đã giao') || s === '8') return 'Delivered';
+        if (s.includes('returned') || s.includes('đã hoàn') || s === '7' || s === '9') return 'Returned';
+        return null;
+    }
+
+    let _allFetchedOrders = [];
+
+    async function runDelayCheck() {
+        const statusEl = document.getElementById('delayStatus');
+        const debugEl = document.getElementById('delayDebug');
+
+        statusEl.innerHTML = "Fetching POS data...";
+        debugEl.innerHTML = "";
+        _allFetchedOrders = [];
+
+        const logDebug = (msg) => {
+            debugEl.innerHTML += `<div><span style="color:#facc15">[DEBUG]</span> ${msg}</div>`;
+            console.log(`[DEBUG] ${msg}`);
+        };
+
+        try {
+            let allRawOrders = [];
+            const BATCH_SIZE = 30; // Reduced to 30 to prevent strict server socket throttling (stalling)
+
+            // Robust fetch wrapper to prevent infinite hangs
+            function fetchWithTimeout(url, opts = {}, timeoutMs = 12000) {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeoutMs);
+                return fetch(url, { ...opts, signal: controller.signal })
+                    .then(res => { clearTimeout(id); return res.json(); })
+                    .catch(err => { clearTimeout(id); return []; }); // silently ignore blocked requests
+            }
+
+            // Fetch Page 1 to find Total Pages
+            statusEl.innerHTML = `Fetching POS data... Initiating connection`;
+            const initUrl = `https://pos.pancake.vn/api/v1/shops/${SHOP_ID}/orders?api_key=${API_KEY}&page_number=1&page_size=100`;
+            const data1 = await fetchWithTimeout(initUrl);
+            const totalPages = data1.total_pages || 1;
+            const totalApiEntries = data1.total_entries || 0;
+
+            logDebug(`API Pagination: Total Pages = ${totalPages}, Total Entries = ${totalApiEntries}`);
+            let raw1 = Array.isArray(data1) ? data1 : (data1.data || data1.orders || []);
+            allRawOrders.push(...raw1);
+
+            // Parallel Batch Fetching for remaining pages
+            for (let page = 2; page <= totalPages; page += BATCH_SIZE) {
+                const chunkPromises = [];
+                const endPage = Math.min(page + BATCH_SIZE - 1, totalPages);
+
+                statusEl.innerHTML = `Fetching POS pages ${page} to ${endPage} of ${totalPages}...`;
+
+                for (let p = page; p <= endPage; p++) {
+                    const u = `https://pos.pancake.vn/api/v1/shops/${SHOP_ID}/orders?api_key=${API_KEY}&page_number=${p}&page_size=100`;
+                    chunkPromises.push(fetchWithTimeout(u));
+                }
+
+                const chunkResults = await Promise.all(chunkPromises);
+
+                chunkResults.forEach(data => {
+                    let raw = Array.isArray(data) ? data : (data.data || data.orders || []);
+                    if (raw && raw.length > 0) allRawOrders.push(...raw);
+                });
+            }
+
+            logDebug(`API Pagination: Completed fetching ${totalPages} pages.`);
+            logDebug(`Total raw orders f: ${allRawOrders.length}`);
+
+            if (allRawOrders.length === 0) {
+                statusEl.innerHTML = "No orders found.";
+                return;
+            }
+
+            // Map the raw POS API schema to the required User Schema
+            _allFetchedOrders = allRawOrders.map(raw => {
+                const o = mapPancakeOrder(raw);
+                // Removed Google Sheet tag merging per user confirmation
+                return o;
+            });
+
+            try {
+                localStorage.setItem('delay_orders_cache', JSON.stringify(_allFetchedOrders));
+                localStorage.setItem('delay_orders_cache_time', Date.now());
+            } catch (e) {
+                console.warn('Could not save to localStorage. Quota exceeded?', e);
+            }
+
+            // Print sample mapped fields (first order)
+            if (_allFetchedOrders.length > 0) {
+                const s = _allFetchedOrders[0];
+                logDebug(`Sample mapped order [${s.order_id}]: Market=${s.market}, Carrier=${s.carrier}, City=${s.city}, Status=${s.latest_status}`);
+            }
+
+            statusEl.innerHTML = `Data fetched successfully. Applying filters...`;
+            logDebug(`Data cached in memory. Ready for real-time filtering.`);
+
+            populateFilterDropdowns();
+            applyFilters(totalApiEntries);
+
+        } catch (e) {
+            console.error(e);
+            document.getElementById('delayStatus').innerHTML = `<span style='color:red'>Fetch Error: ${e.message}</span>`;
+        }
+    }
+
+    function populateFilterDropdowns() {
+        if (!_allFetchedOrders || _allFetchedOrders.length === 0) return;
+
+        const markets = [...new Set(_allFetchedOrders.map(o => o.market))].filter(Boolean).sort();
+        const carriers = [...new Set(_allFetchedOrders.map(o => o.carrier))].filter(Boolean).sort();
+        const cities = [...new Set(_allFetchedOrders.map(o => o.city))].filter(Boolean).sort();
+        const statuses = [...new Set(_allFetchedOrders.map(o => o.latest_status))].filter(Boolean).sort();
+
+        const tagsSet = new Set();
+        _allFetchedOrders.forEach(o => {
+            let tList = [];
+            if (Array.isArray(o.order_tags)) tList = o.order_tags.map(t => typeof t === 'object' ? (t.name || t.text || t.label || String(t)) : String(t));
+            else if (typeof o.order_tags === 'string') tList = o.order_tags.split(/[,●\n|]+/).map(t => t.trim());
+            tList.forEach(t => { if (t) tagsSet.add(t); });
+        });
+        const tags = [...tagsSet].sort();
+
+        const buildOptions = (arr, defaultText) => `<option value="" style="color:black">${defaultText}</option>` + arr.map(item => `<option value="${item}" style="color:black">${item}</option>`).join('');
+
+        const mEl = document.getElementById('filterMarket');
+        const cEl = document.getElementById('filterCarrier');
+        const ciEl = document.getElementById('filterCity');
+        const sEl = document.getElementById('filterStatus');
+        const tEl = document.getElementById('filterTag');
+
+        const curM = mEl ? mEl.value : "";
+        const curC = cEl ? cEl.value : "";
+        const curCi = ciEl ? ciEl.value : "";
+        const curS = sEl ? sEl.value : "";
+        const curT = tEl ? tEl.value : "";
+
+        if (mEl) { mEl.innerHTML = buildOptions(markets, 'All Markets'); mEl.value = curM; }
+        if (cEl) { cEl.innerHTML = buildOptions(carriers, 'All Carriers'); cEl.value = curC; }
+        if (ciEl) { ciEl.innerHTML = buildOptions(cities, 'All Cities'); ciEl.value = curCi; }
+        if (sEl) { sEl.innerHTML = buildOptions(statuses, 'All Statuses'); sEl.value = curS; }
+        if (tEl) { tEl.innerHTML = buildOptions(tags, 'All Tags'); tEl.value = curT; }
+
+        document.querySelectorAll('.lf-tag').forEach(el => { const v = el.value; el.innerHTML = buildOptions(tags, 'All Tags'); el.value = v; });
+        document.querySelectorAll('.lf-status').forEach(el => { const v = el.value; el.innerHTML = buildOptions(statuses, 'All Statuses'); el.value = v; });
+    }
+
+    function applyFilters(totalApiEntries) {
+        totalApiEntries = totalApiEntries || 0;
+        if (!_allFetchedOrders || _allFetchedOrders.length === 0) return;
+
+        const fMarket = document.getElementById('filterMarket').value.toLowerCase().trim();
+        const fCarrier = document.getElementById('filterCarrier').value.toLowerCase().trim();
+        const fCity = document.getElementById('filterCity').value.toLowerCase().trim();
+        const fStatus = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value.toLowerCase().trim() : '';
+        const fTagSelect = document.getElementById('filterTag') ? document.getElementById('filterTag').value.toLowerCase().trim() : '';
+        const fFrom = document.getElementById('filterDateFrom').value;
+        const fTo = document.getElementById('filterDateTo').value;
+        const fCustomer = document.querySelector('.tbl-filter-customer') ? document.querySelector('.tbl-filter-customer').value.toLowerCase().trim() : '';
+        const fTagText = document.querySelector('.tbl-filter-tag') ? document.querySelector('.tbl-filter-tag').value.toLowerCase().trim() : '';
+
+        let orders = _allFetchedOrders.filter(o => {
+            if (fMarket && !String(o.market).toLowerCase().includes(fMarket)) return false;
+            if (fCarrier && !String(o.carrier).toLowerCase().includes(fCarrier)) return false;
+            if (fCity && !String(o.city).toLowerCase().includes(fCity)) return false;
+            if (fStatus && !String(o.latest_status).toLowerCase().includes(fStatus)) return false;
+            if (fCustomer && !String(o.customer_name).toLowerCase().includes(fCustomer)) return false;
+
+            // Allow combining Top Dropdown Tag and Table Header Text Tag loosely
+            if (fTagSelect || fTagText) {
+                let tagsStr = Array.isArray(o.order_tags) ? o.order_tags.join(' ').toLowerCase() : String(o.order_tags).toLowerCase();
+                if (fTagSelect && !tagsStr.includes(fTagSelect)) return false;
+                if (fTagText && !tagsStr.includes(fTagText)) return false;
+            }
+
+            if (fFrom || fTo) {
+                const compDate = o.shipped_at ? new Date(o.shipped_at) : (o.created_at ? new Date(o.created_at) : new Date());
+                if (fFrom && compDate < new Date(fFrom)) return false;
+                if (fTo) {
+                    const tDate = new Date(fTo);
+                    tDate.setDate(tDate.getDate() + 1); // include the whole day
+                    if (compDate >= tDate) return false;
+                }
+            }
+            return true;
+        });
+
+        const statusEl = document.getElementById('delayStatus');
+
+        // Diagnostic Log
+        const refusedRaw = _allFetchedOrders.filter(o => {
+            let tagsStr = Array.isArray(o.order_tags) ? o.order_tags.map(t => typeof t === 'object' ? (t.name || t.text || t.label || String(t)) : String(t)).join(' ').toLowerCase() : String(o.order_tags).toLowerCase();
+            return tagsStr.includes('refused');
+        });
+        const refusedFiltered = orders.filter(o => {
+            let tagsStr = Array.isArray(o.order_tags) ? o.order_tags.map(t => typeof t === 'object' ? (t.name || t.text || t.label || String(t)) : String(t)).join(' ').toLowerCase() : String(o.order_tags).toLowerCase();
+            return tagsStr.includes('refused');
+        });
+        const diagnosticInfo = ` [Diagnostic: Found \${refusedRaw.length} "Refused" globally in API fetch, \${refusedFiltered.length} after filterDateFrom]`;
+
+        statusEl.innerHTML = `Analyzing ${orders.length} filtered orders... \${diagnosticInfo}`;
+        const results = processLogic(orders);
+
+        // Compute Global Analytics (ignoring Date, Customer, and Status filters) to show macro risk levels
+        const globalStats = extractGlobalStats(_allFetchedOrders);
+        results.tagStats = globalStats.tagStats;
+        results.cityStats = globalStats.cityStats;
+
+        window._currentDelayResults = results; // Save BEFORE rendering!
+        renderDashboard(results);
+
+        const fetchComplete = !totalApiEntries || _allFetchedOrders.length >= totalApiEntries;
+        const fetchBadge = fetchComplete
+            ? `<span style='background:#10b981; color:#fff; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px;'>✔ Đã fetch đủ ${_allFetchedOrders.length.toLocaleString()} / ${totalApiEntries.toLocaleString()} đơn</span>`
+            : `<span style='background:#f97316; color:#fff; border-radius:4px; padding:2px 8px; font-size:11px; margin-left:8px;'>⚠ Chỉ fetch được ${_allFetchedOrders.length.toLocaleString()} / ${totalApiEntries.toLocaleString()} đơn (một số trang bị timeout)</span>`;
+
+        statusEl.innerHTML = `<span style='color:#4ade80'>Đang hiển thị <b>${orders.length.toLocaleString()}</b> đơn phù hợp bộ lọc. ${fetchBadge} &nbsp;|&nbsp; Cập nhật lúc: ${new Date().toLocaleTimeString()}</span>`;
+    }
+
+    function extractGlobalStats(allOrders) {
+        const tStats = {};
+        const cStats = {};
+
+        allOrders.forEach(o => {
+            const dropStatuses = ["đợi xác nhận", "đã xác nhận", "hủy", "cancel", "hủy đơn", "đã hủy", "mới", "new", "submitted", "packing", "đóng hàng", "wait submit", "wait_submit", "chờ chuyển", "chờ lấy"];
+            if (o.latest_status && dropStatuses.some(ds => o.latest_status.toLowerCase().includes(ds))) return;
+
+            const isDelivered = o.final_status === 'Delivered';
+            const isLatestFailed = typeof o.latest_status === 'string' && ['returned', 'returning', 'đã hoàn', 'đang hoàn'].some(s => o.latest_status.toLowerCase().includes(s));
+            const isReturned = o.final_status === 'Returned' || isLatestFailed;
+            const hasShipped = !!o.shipped_at || isDelivered || isReturned;
+
+            if (hasShipped) {
+                // Parse Tags
+                let tags = [];
+                if (Array.isArray(o.order_tags)) {
+                    tags = o.order_tags.map(t => typeof t === 'object' ? (t.name || t.text || t.label || '') : String(t));
+                } else if (typeof o.order_tags === 'string') {
+                    tags = o.order_tags.split(/[,●\n|]+/).map(t => t.trim());
+                }
+
+                const ignoreTags = ["waiting for confirmation", "yêu cầu hủy", "out of stock", "reconciled", "hoàn dvvc", "chú ý", "lần 1", "lần 2", "lần 3", "phát sinh", "mới", "đã hoàn", "giao thành công", "đã giao", "giao tc", "none", "unknown", "jnt ksa", "jnt uae", "imile", "returning", "shipment was not delivered", "[object object]", "undeliverable", "0", "on delivery"];
+                tags.forEach(t => {
+                    if (!t) return;
+                    const low = t.toLowerCase();
+                    if (low === "0" || low === "[object object]") return;
+                    if (low.length < 2 || ignoreTags.some(ig => low === ig || low.includes(ig)) || low.includes("đơn ngày") || low.includes("delay")) return;
+
+                    if (!tStats[t]) tStats[t] = { delivered: 0, returned: 0, total: 0 };
+                    tStats[t].total++;
+                    if (isDelivered) tStats[t].delivered++;
+                    else if (isReturned) tStats[t].returned++;
+                });
+
+                // Parse Cities
+                const cityNorm = (o.city || '(Trống)').toString().trim() || '(Trống)';
+                if (!cStats[cityNorm]) cStats[cityNorm] = { delivered: 0, returned: 0, total: 0 };
+                cStats[cityNorm].total++;
+                if (isDelivered) cStats[cityNorm].delivered++;
+                else if (isReturned) cStats[cityNorm].returned++;
+            }
+        });
+
+        return { tagStats: tStats, cityStats: cStats };
+    }
+
+    function processLogic(orders) {
+        const today = new Date();
+        const needFollow = [];
+        const overdue = [];
+        const appointment = [];
+        let totalInProgress = 0;
+        let failTagsCount = 0;
+        let totalDeliveryDays = 0;
+        let deliveredCount = 0;
+
+        const cityDelays = {};
+        const carrierDelays = {};
+        const cityDeliveryTimes = {};
+        const carrierDeliveryTimes = {};
+        const ageDist = { "0-3": 0, "4-5": 0, "6-7": 0, ">7": 0 };
+        const tagStats = {};
+        const cityStats = {};
+
+        orders.forEach(o => {
+            // Explicitly drop cancelled or unconfirmed orders completely early
+            const dropStatuses = ["đợi xác nhận", "đã xác nhận", "hủy", "cancel", "hủy đơn", "đã hủy", "mới", "new", "submitted", "packing", "đóng hàng", "wait submit", "wait_submit", "chờ chuyển", "chờ lấy"];
+            if (o.latest_status && dropStatuses.some(ds => o.latest_status.toLowerCase().includes(ds))) return;
+
+            const isDelivered = o.final_status === 'Delivered';
+            const isLatestFailed = typeof o.latest_status === 'string' && ['returned', 'returning', 'đã hoàn', 'đang hoàn'].some(s => o.latest_status.toLowerCase().includes(s));
+            const isReturned = o.final_status === 'Returned' || isLatestFailed;
+
+            // (Global Analytics extraction moved entirely to extractGlobalStats function)
+
+            // Do NOT track ANY orders for Delay Tools down below unless they have officially shipped out of the warehouse
+            if (!o.shipped_at) return;
+
+            const shipDate = new Date(o.shipped_at);
+            const isFinal = (o.final_status === 'Delivered' || o.final_status === 'Returned' || o.final_status_time);
+
+            // Average delivery time formula
+            if (isFinal && o.final_status === 'Delivered' && o.final_status_time) {
+                const finalDate = new Date(o.final_status_time);
+                const days = (finalDate - shipDate) / (1000 * 60 * 60 * 24);
+                if (days >= 0) {
+                    totalDeliveryDays += days;
+                    deliveredCount++;
+
+                    if (!cityDeliveryTimes[o.city]) cityDeliveryTimes[o.city] = { total: 0, count: 0 };
+                    cityDeliveryTimes[o.city].total += days;
+                    cityDeliveryTimes[o.city].count++;
+
+                    if (!carrierDeliveryTimes[o.carrier]) carrierDeliveryTimes[o.carrier] = { total: 0, count: 0 };
+                    carrierDeliveryTimes[o.carrier].total += days;
+                    carrierDeliveryTimes[o.carrier].count++;
+                }
+            }
+
+            // Track ONLY orders that do not yet have final status
+            if (isFinal) return;
+
+            totalInProgress++;
+
+            const lastUpdateDate = new Date(o.latest_status_time || o.shipped_at);
+            const daysSinceShip = Math.floor((today - shipDate) / (1000 * 60 * 60 * 24));
+            const daysSinceUpdate = Math.floor((today - lastUpdateDate) / (1000 * 60 * 60 * 24));
+
+            // Determine Age Bucket
+            if (daysSinceShip <= 3) ageDist["0-3"]++;
+            else if (daysSinceShip <= 5) ageDist["4-5"]++;
+            else if (daysSinceShip <= 7) ageDist["6-7"]++;
+            else ageDist[">7"]++;
+
+            // Tag Logic
+            let tags = [];
+            if (Array.isArray(o.order_tags)) {
+                tags = o.order_tags.map(t => typeof t === 'object' ? (t.name || t.text || t.label || String(t)) : String(t));
+            } else if (typeof o.order_tags === 'string') {
+                tags = o.order_tags.split(/[,●\n|]+/).map(t => t.trim());
+            }
+
+            // Check fail tags patterns including return/cancel reasons
+            const failKeywords = [
+                "not my order", "did not order", "cancel", "hủy", "huy",
+                "đã hoàn", "thất lạc", "mất", "already", "alredy",
+                "no longer required", "mobile switched off", "person not available",
+                "no respon", "giao không thành", "wrong item", "wrong number",
+                "rescheduled", "open package request", "refused", "bad address", "location changed"
+            ];
+
+            let hasFailTag = false;
+            tags.forEach(t => {
+                const lowerT = t.toLowerCase();
+                failKeywords.forEach(f => {
+                    if (lowerT.includes(f)) {
+                        hasFailTag = true;
+                        // Format tag for the chart
+                        const label = f.charAt(0).toUpperCase() + f.slice(1);
+                        tagStats[label] = (tagStats[label] || 0) + 1;
+                    }
+                });
+            });
+
+            if (hasFailTag) failTagsCount++;
+
+            const hasAppointment = tags.some(t => t.toLowerCase().includes("hẹn giao") || t.toLowerCase().includes("future delivery"));
+
+            const isReturning = o.latest_status && o.latest_status.toLowerCase() === 'returning';
+            const hasHoanDVVC = tags.some(t => t.toLowerCase().includes("hoàn dvvc"));
+
+            // Classification Output Model
+            const rowData = {
+                order_id: o.order_id,
+                page_id: o.page_id,
+                tracking_number: o.tracking_number,
+                carrier: o.carrier,
+                market: o.market,
+                city: o.city,
+                customer_name: o.customer_name,
+                phone: o.phone,
+                status: o.latest_status || 'Shipped',
+                ship_date: shipDate.toLocaleDateString('vi-VN'),
+                last_update: lastUpdateDate.toLocaleDateString('vi-VN') + ' ' + lastUpdateDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                days_since_ship: daysSinceShip,
+                days_since_update: daysSinceUpdate,
+                all_tags: tags.join(' | '),
+                reason: '',
+                pos_note: o.pos_note,
+                pos_link: o.pos_link
+            };
+
+            let categorized = false;
+
+            // B. OVERDUE / STUCK
+            if (daysSinceShip > 7) {
+                if (isReturning) {
+                    rowData.reason = hasHoanDVVC ? "Returning: Đợi kho đối soát hoàn" : `Returning: Đang hoàn quá lâu (>${daysSinceShip} days)`;
+                } else {
+                    rowData.reason = `Overdue (>7 days)`;
+                }
+                overdue.push(rowData);
+                categorized = true;
+
+                // Stats for charts
+                cityDelays[o.city] = (cityDelays[o.city] || 0) + 1;
+                carrierDelays[o.carrier] = (carrierDelays[o.carrier] || 0) + 1;
+            }
+
+            // C. APPOINTMENT FOLLOW
+            if (!categorized && hasAppointment) {
+                if (daysSinceUpdate >= 3) {
+                    rowData.reason = `Stuck after appointment (>=3 days)`;
+                    // "If order has tag 'Đã hẹn giao' and still no final status after 3 days -> STUCK AFTER APPOINTMENT."
+                    // Wait, the prompt says "mark as STUCK AFTER APPOINTMENT" which implies OVERDUE/STUCK? or Appointment? Let's put in Appointment Follow with high priority
+                    appointment.push(rowData);
+                    categorized = true;
+                } else if (daysSinceUpdate >= 2) {
+                    rowData.reason = `Needs follow after appointment (>=2 days)`;
+                    appointment.push(rowData);
+                    categorized = true;
+                }
+            }
+
+            // A. NEED FOLLOW
+            if (!categorized) {
+                if ((daysSinceShip >= 6 && daysSinceShip <= 7) ||
+                    (hasFailTag && daysSinceUpdate >= 2) ||
+                    (daysSinceUpdate > 3)) {
+
+                    if (isReturning) {
+                        rowData.reason = hasHoanDVVC ? "Returning: Đợi kho đối soát hoàn" : "Returning: Đang hoàn cần check lộ trình";
+                    } else if (daysSinceShip >= 6 && daysSinceShip <= 7) rowData.reason = `Shipment age 6-7 days`;
+                    else if (hasFailTag && daysSinceUpdate >= 2) rowData.reason = `Failed tag + no update 2 days`;
+                    else if (daysSinceUpdate > 3) rowData.reason = `No update > 3 days`;
+
+                    needFollow.push(rowData);
+                    categorized = true;
+                }
+            }
+        });
+
+        const avgGlobal = deliveredCount > 0 ? (totalDeliveryDays / deliveredCount).toFixed(1) : 0;
+
+        // Sort arrays descending by delay severity
+        overdue.sort((a, b) => b.days_since_ship - a.days_since_ship);
+        needFollow.sort((a, b) => b.days_since_ship - a.days_since_ship);
+        appointment.sort((a, b) => b.days_since_update - a.days_since_update);
+
+        return {
+            needFollow, overdue, appointment,
+            totalInProgress, failTagsCount, avgGlobal,
+            cityDelays, carrierDelays, ageDist, cityDeliveryTimes, carrierDeliveryTimes, tagStats, cityStats
+        };
+    }
+
+    // Chart instances cache
+    let charts = {};
+
+    function renderDashboard(res) {
+        // Render Summary
+        document.getElementById('d_total').textContent = res.totalInProgress;
+        document.getElementById('d_need_follow').textContent = res.needFollow.length;
+        document.getElementById('d_overdue').textContent = res.overdue.length;
+        document.getElementById('d_appt').textContent = res.appointment.length;
+        document.getElementById('d_fail_tags').textContent = res.failTagsCount;
+        document.getElementById('d_avg_time').textContent = res.avgGlobal + 'd';
+
+
+        function populateExcelFilters(group, data) {
+            const tableElement = document.querySelector(`table[data-group="${group}"]`);
+            if (!tableElement) return;
+
+            const cols = ['all_tags', 'status', 'days_since_ship', 'days_since_update', 'reason', 'carrier'];
+            cols.forEach(col => {
+                const container = tableElement.querySelector(`.excel-filter[data-col="${col}"]`);
+                if (!container) return;
+
+                const dropdown = container.querySelector('.ef-dropdown');
+                if (!dropdown) return;
+
+                // Get unique values sorted
+                let uniques = [];
+                if (col === 'all_tags') {
+                    const tagSet = new Set();
+                    data.forEach(o => {
+                        if (o.all_tags) o.all_tags.split(' | ').forEach(t => { if (t) tagSet.add(t); });
+                    });
+                    uniques = [...tagSet].sort();
+                } else if (col === 'days_since_ship' || col === 'days_since_update') {
+                    uniques = [...new Set(data.map(o => o[col]))].filter(x => x !== null && x !== undefined).sort((a, b) => b - a); // Descending for days
+                } else {
+                    uniques = [...new Set(data.map(o => o[col]))].filter(Boolean).sort();
+                }
+
+                // Preserve checked states before rewriting
+                const existingCheckboxes = dropdown.querySelectorAll('input:not(.ef-select-all)');
+                const hadOptions = existingCheckboxes.length > 0;
+                let existingChecked = [];
+                if (hadOptions) existingChecked = Array.from(existingCheckboxes).filter(i => i.checked).map(i => i.value);
+
+                let html = '';
+                uniques.forEach(val => {
+                    const isChecked = !hadOptions || existingChecked.includes(String(val));
+                    const checkedStr = isChecked ? 'checked' : '';
+                    html += `<label><input type="checkbox" value="${val}" ${checkedStr}> ${val}</label>`;
+                });
+
+                const allChecked = !hadOptions || existingChecked.length === existingCheckboxes.length;
+                const allHTML = `<label style="border-bottom: 1px dashed #475569; padding-bottom: 4px; margin-bottom: 4px; color: var(--accent); font-weight: bold;">
+                    <input type="checkbox" class="ef-select-all" value="ALL" ${allChecked ? 'checked' : ''}> <i>(Select/Clear All)</i>
+                </label>`;
+
+                dropdown.innerHTML = allHTML + html;
+
+                // Add change listeners to checkboxes
+                const selectAllChk = dropdown.querySelector('.ef-select-all');
+                const normalChks = dropdown.querySelectorAll('input:not(.ef-select-all)');
+
+                selectAllChk.addEventListener('change', (e) => {
+                    normalChks.forEach(chk => chk.checked = e.target.checked);
+                    updateHeader(container);
+                    renderLocalTableOnly(group);
+                });
+
+                normalChks.forEach(chk => {
+                    chk.addEventListener('change', () => {
+                        selectAllChk.checked = Array.from(normalChks).every(c => c.checked);
+                        updateHeader(container);
+                        renderLocalTableOnly(group);
+                    });
+                });
+                updateHeader(container);
+            });
+        }
+
+        function updateHeader(container) {
+            const header = container.querySelector('.ef-header');
+            const chks = Array.from(container.querySelectorAll('input:not(.ef-select-all)'));
+            const checkedChks = chks.filter(c => c.checked);
+            if (checkedChks.length === chks.length || chks.length === 0) header.textContent = 'All';
+            else if (checkedChks.length === 0) header.textContent = 'None';
+            else if (checkedChks.length === 1) header.textContent = checkedChks[0].value;
+            else header.textContent = 'Multiple (' + checkedChks.length + ')';
+        }
+
+
+        populateExcelFilters('needFollow', res.needFollow);
+        populateExcelFilters('overdue', res.overdue);
+        populateExcelFilters('appointment', res.appointment);
+
+        // Render Tables handled by local isolated components
+        renderLocalTableOnly('needFollow');
+        renderLocalTableOnly('overdue');
+        renderLocalTableOnly('appointment');
+
+        // Draw Charts
+        // Draw Charts
+        drawChart('chartCities', 'bar', 'Most Delayed Orders by City', res.cityDelays);
+        drawChart('chartCarriers', 'pie', 'Delayed by Carrier', res.carrierDelays);
+        drawChart('chartAge', 'doughnut', 'Order Age Distribution', res.ageDist);
+
+        const avgCityObj = {};
+        for (let k in res.cityDeliveryTimes) avgCityObj[k] = (res.cityDeliveryTimes[k].total / res.cityDeliveryTimes[k].count).toFixed(1);
+        drawChart('chartAvgCity', 'bar', 'Avg Delivery Time by City (Days)', avgCityObj);
+
+        // Tag Return Rate Chart Configuration
+        const tagMap = res.tagStats;
+        let tsNames = [];
+        let tsValues = [];
+
+        // Filter out tags with insufficient data (< 3 total orders) and sort by return rate descending
+        const validTags = Object.keys(tagMap)
+            .filter(t => tagMap[t].total >= 3)
+            .map(t => ({
+                tag: t,
+                total: tagMap[t].total,
+                returned: tagMap[t].returned,
+                rate: (tagMap[t].returned / tagMap[t].total) * 100
+            }))
+            .sort((a, b) => b.rate - a.rate)
+            .slice(0, 25); // Limit visual bloat
+
+        tsNames = validTags.map(v => v.tag.length > 35 ? v.tag.substring(0, 35) + '...' : v.tag);
+        // values are percentages
+        tsValues = validTags.map(v => v.rate.toFixed(1));
+
+        const tagChartBox = document.getElementById('chartTagReturn').parentElement;
+        tagChartBox.style.height = (validTags.length * 45 + 120) + 'px';
+
+        if (charts['chartTagReturn']) charts['chartTagReturn'].destroy();
+        charts['chartTagReturn'] = new Chart(document.getElementById('chartTagReturn'), {
+            type: 'bar',
+            data: {
+                labels: tsNames,
+                datasets: [{
+                    label: 'Return Rate (%)',
+                    data: tsValues,
+                    barPercentage: 0.6,
+                    categoryPercentage: 1.0,
+                    backgroundColor: validTags.map(v => {
+                        if (v.rate >= 90) return '#ef4444';
+                        if (v.rate >= 75) return '#f97316';
+                        if (v.rate >= 50) return '#eab308';
+                        return '#3b82f6';
+                    }),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y', // horizontal bar chart
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'All Risk Tags (% Returned)', color: '#0f172a', font: { size: 16 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                const tagObj = validTags[ctx.dataIndex];
+                                return `Returned: ${tagObj.returned} / ${tagObj.total} orders (${tagObj.rate.toFixed(1)}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#475569', font: { size: 13 } }, grid: { color: 'rgba(0,0,0,0.1)' }, min: 0, max: 100 },
+                    y: {
+                        ticks: { color: '#1e293b', font: { size: 15, weight: 'bold' }, autoSkip: false, maxRotation: 0 },
+                        grid: { display: false },
+                        afterFit: (axis) => { axis.width = 380; }
+                    }
+                }
+            }
+        });
+
+        // ============================================
+        // City Return Rate Chart Configuration
+        // ============================================
+        const cmap = res.cityStats;
+        const validCities = Object.keys(cmap)
+            .filter(c => cmap[c].total >= 2)
+            .map(c => ({
+                city: c,
+                total: cmap[c].total,
+                returned: cmap[c].returned,
+                rate: (cmap[c].returned / cmap[c].total) * 100
+            }))
+            .sort((a, b) => {
+                if (b.rate === a.rate) return b.total - a.total; // Tiebreaker: volume
+                return b.rate - a.rate;
+            })
+            .slice(0, 25); // Limit visual bloat
+
+        const csNames = validCities.map(v => v.city.length > 35 ? v.city.substring(0, 35) + '...' : v.city);
+        const csValues = validCities.map(v => v.rate.toFixed(1));
+
+        const cityChartBox = document.getElementById('chartCityReturn').parentElement;
+        cityChartBox.style.height = (validCities.length * 110 + 150) + 'px';
+
+        if (charts['chartCityReturn']) charts['chartCityReturn'].destroy();
+        charts['chartCityReturn'] = new Chart(document.getElementById('chartCityReturn'), {
+            type: 'bar',
+            data: {
+                labels: csNames,
+                datasets: [{
+                    label: 'City Return Rate (%)',
+                    data: csValues,
+                    barPercentage: 0.6,
+                    categoryPercentage: 1.0,
+                    backgroundColor: validCities.map(v => {
+                        if (v.rate >= 50) return '#ef4444';
+                        if (v.rate >= 30) return '#f97316';
+                        if (v.rate >= 15) return '#eab308';
+                        return '#4ade80';
+                    }),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y', // horizontal bar chart
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Return Rate by City (% Returned)', color: '#0f172a', font: { size: 16 } },
+                    tooltip: {
+                        callbacks: {
+                            label: function (ctx) {
+                                const cObj = validCities[ctx.dataIndex];
+                                return `Returned: ${cObj.returned} / ${cObj.total} orders (${cObj.rate.toFixed(1)}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { ticks: { color: '#475569', font: { size: 13 } }, grid: { color: 'rgba(0,0,0,0.1)' }, min: 0, max: 100 },
+                    y: {
+                        ticks: { color: '#1e293b', font: { size: 15, weight: 'bold' }, autoSkip: false, maxRotation: 0 },
+                        grid: { display: false },
+                        afterFit: (axis) => { axis.width = 380; }
+                    }
+                }
+            }
+        });
+
+    }
+
+    // === TRACKING DATA AND PAGINATION STATE ===
+    function getTrackerData() {
+        try { return JSON.parse(localStorage.getItem('delay_tracking_data') || '{}'); } catch (e) { return {}; }
+    }
+    function setTrackerData(d) { localStorage.setItem('delay_tracking_data', JSON.stringify(d)); }
+
+    window.delayToolToggleDone = function (id, group) {
+        const d = getTrackerData();
+        if (!d[id]) d[id] = { follow: 0, note: '' };
+        if (d[id].done !== undefined) { d[id].follow = d[id].done ? 3 : 0; delete d[id].done; }
+
+        d[id].follow = ((d[id].follow || 0) + 1) % 4;
+
+        setTrackerData(d);
+        if (window.delayModule && window.delayModule.renderLocalTableOnly) window.delayModule.renderLocalTableOnly(group);
+    };
+
+    window.delayToolSaveNote = function (id, el) {
+        const d = getTrackerData();
+        if (!d[id]) d[id] = { follow: 0, note: '' };
+        if (d[id].done !== undefined) { d[id].follow = d[id].done ? 3 : 0; delete d[id].done; }
+        d[id].note = el.value;
+        setTrackerData(d);
+    };
+
+    if (typeof window._delayPagination === 'undefined') {
+        window._delayPagination = { needFollow: 1, overdue: 1, appointment: 1 };
+    }
+
+    function buildRow(keys, o, group, trackerState) {
+        const trk = trackerState[o.order_id] || { follow: 0, note: '' };
+        if (trk.done !== undefined) { trk.follow = trk.done ? 3 : 0; }
+
+        let rowStyle = '';
+        let btnText = '📍 Chưa follow';
+        let btnStyle = 'background: #e2e8f0; color: #475569;';
+
+        const f = trk.follow || 0;
+        if (f === 1) {
+            rowStyle = 'background-color: rgba(234, 179, 8, 0.12);'; // Yellow
+            btnText = 'Đã follow Lần 1';
+            btnStyle = 'background: #eab308; color: #fff;';
+        } else if (f === 2) {
+            rowStyle = 'background-color: rgba(249, 115, 22, 0.12);'; // Orange
+            btnText = 'Đã follow Lần 2';
+            btnStyle = 'background: #f97316; color: #fff;';
+        } else if (f === 3) {
+            rowStyle = 'background-color: rgba(16, 185, 129, 0.12);'; // Green
+            btnText = '✔ Đã follow Lần 3 (Max)';
+            btnStyle = 'background: #10b981; color: #fff;';
+        }
+
+        let rowHtml = keys.map(k => {
+            if (k === 'order_id') {
+                return `<td>
+                    <span style="font-weight:bold;">${o[k]}</span>
+                    <button onclick="navigator.clipboard.writeText('${o[k]}'); this.innerText='Copied!';" style="font-size:10px; padding:2px 5px; margin-left:5px; cursor:pointer; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; border-radius:3px;" title="Copy">Copy</button>
+                </td>`;
+            }
+            if (k === 'tracking_number' && o[k] !== 'N/A') {
+                if (o[k].includes('http') || o[k].includes('/') || o[k].length > 20) {
+                    return `<td><span style="color:#64748b; font-style:italic;">(Pending)</span></td>`;
+                }
+                return `<td>
+                    <span style="font-family:monospace;">${o[k]}</span>
+                    <button onclick="navigator.clipboard.writeText('${o[k]}'); this.innerText='Copied!';" style="font-size:10px; padding:2px 5px; margin-left:5px; cursor:pointer; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; border-radius:3px;" title="Copy">Copy</button>
+                </td>`;
+            }
+            return `<td>${o[k]}</td>`;
+        }).join('');
+
+        let posLink = o.pos_link || `https://pos.pancake.vn/shop/${SHOP_ID}/order?order_id=${o.order_id}`;
+
+        let customLink;
+        if (o.conversation_link) customLink = o.conversation_link;
+        else if (o.customer_id) customLink = `https://pancake.vn/${o.page_id}?customer_id=${o.customer_id}`;
+        else customLink = `https://pancake.vn/${o.page_id}?order=${o.order_id}`;
+
+        const actions = `<div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; gap:6px;">
+                <a href="${customLink}" target="_blank" style="flex:1; background:#0284c7; padding:8px; border-radius:4px; color:#fff; text-decoration:none; text-align:center; font-weight:bold; font-size:12px;">Open Chat</a>
+                <a href="${posLink}" target="_blank" style="flex:1; background:#d97706; padding:8px; border-radius:4px; color:#fff; text-decoration:none; text-align:center; font-weight:bold; font-size:12px;">Open POS</a>
+            </div>
+            <div style="border-top:1px solid rgba(0,0,0,0.1); padding-top:6px;">
+                <button onclick="delayToolToggleDone('${o.order_id}', '${group}')" style="width:100%; border:none; padding:8px; border-radius:4px; font-weight:bold; font-size:13px; cursor:pointer; ${btnStyle}">
+                    ${btnText}
+                </button>
+                <input type="text" placeholder="Ghi chú nhanh..." value="${(trk.note || '').replace(/"/g, '&quot;')}" oninput="delayToolSaveNote('${o.order_id}', this)" style="width:100%; border-radius:4px; border:1px solid #cbd5e1; background:#ffffff; color:#0f172a; padding:10px; font-size:14px; margin-top:8px;">
+            </div>
+        </div>`;
+        return `<tr style="${rowStyle}">${rowHtml}<td>${actions}</td></tr>`;
+    }
+
+
+    function getLocalFilteredData(group) {
+        if (!window._currentDelayResults || !window._currentDelayResults[group]) return [];
+        const baseData = window._currentDelayResults[group];
+
+        const tableElement = document.querySelector(`table[data-group="${group}"]`);
+        if (!tableElement) return baseData;
+
+        const fCustomer = tableElement.querySelector('.tbl-filter-customer') ? tableElement.querySelector('.tbl-filter-customer').value.toLowerCase().trim() : '';
+
+        const getCheckedInfo = (col) => {
+            const c = tableElement.querySelector(`.excel-filter[data-col="${col}"]`);
+            if (!c) return null;
+            const checkboxes = Array.from(c.querySelectorAll('input:not(.ef-select-all)'));
+            if (checkboxes.length === 0) return null;
+            const checked = checkboxes.filter(i => i.checked).map(i => i.value);
+            return { checked, total: checkboxes.length };
+        };
+
+        const fTagsInfo = getCheckedInfo('all_tags');
+        const fStatusInfo = getCheckedInfo('status');
+        const fDaysShipStrInfo = getCheckedInfo('days_since_ship');
+        const fDaysUpdStrInfo = getCheckedInfo('days_since_update');
+        const fReasonInfo = getCheckedInfo('reason');
+        const fCarrierStrInfo = getCheckedInfo('carrier');
+
+        return baseData.filter(o => {
+            if (fCustomer && !String(o.customer_name).toLowerCase().includes(fCustomer)) return false;
+
+            if (fTagsInfo && fTagsInfo.checked.length < fTagsInfo.total) {
+                if (fTagsInfo.checked.length === 0) return false;
+                let tagsStr = String(o.all_tags);
+                if (!fTagsInfo.checked.some(t => tagsStr.includes(t))) return false;
+            }
+
+            if (fStatusInfo && fStatusInfo.checked.length < fStatusInfo.total) {
+                if (fStatusInfo.checked.length === 0) return false;
+                if (!fStatusInfo.checked.includes(o.status)) return false;
+            }
+            if (fDaysShipStrInfo && fDaysShipStrInfo.checked.length < fDaysShipStrInfo.total) {
+                if (fDaysShipStrInfo.checked.length === 0) return false;
+                if (!fDaysShipStrInfo.checked.includes(String(o.days_since_ship))) return false;
+            }
+            if (fDaysUpdStrInfo && fDaysUpdStrInfo.checked.length < fDaysUpdStrInfo.total) {
+                if (fDaysUpdStrInfo.checked.length === 0) return false;
+                if (!fDaysUpdStrInfo.checked.includes(String(o.days_since_update))) return false;
+            }
+            if (fReasonInfo && fReasonInfo.checked.length < fReasonInfo.total) {
+                if (fReasonInfo.checked.length === 0) return false;
+                if (!fReasonInfo.checked.includes(o.reason)) return false;
+            }
+            if (fCarrierStrInfo && fCarrierStrInfo.checked.length < fCarrierStrInfo.total) {
+                if (fCarrierStrInfo.checked.length === 0) return false;
+                if (!fCarrierStrInfo.checked.includes(o.carrier)) return false;
+            }
+
+            return true;
+        });
+    }
+
+
+    function renderLocalTableOnly(group) {
+        let tbodyId = "";
+        if (group === 'needFollow') tbodyId = 'delayNeedFollowTbody';
+        else if (group === 'overdue') tbodyId = 'delayOverdueTbody';
+        else if (group === 'appointment') tbodyId = 'delayApptTbody';
+
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+
+        let data = getLocalFilteredData(group);
+
+        // Push 'done/followed' items to the bottom depending on follow magnitude
+        const trackerState = getTrackerData();
+        data.sort((a, b) => {
+            const trkA = trackerState[a.order_id] || {};
+            const trkB = trackerState[b.order_id] || {};
+            const fA = trkA.follow || (trkA.done ? 3 : 0);
+            const fB = trkB.follow || (trkB.done ? 3 : 0);
+            return fA - fB;
+        });
+
+        const total = data.length;
+        const limit = 50;
+        const maxPage = Math.ceil(total / limit) || 1;
+
+        let p = window._delayPagination[group] || 1;
+        if (p > maxPage) p = maxPage;
+        window._delayPagination[group] = p;
+
+        const pagedData = data.slice((p - 1) * limit, p * limit);
+
+        tbody.innerHTML = pagedData.map(o => buildRow(['order_id', 'tracking_number', 'carrier', 'city', 'customer_name', 'all_tags', 'status', 'ship_date', 'days_since_ship', 'days_since_update', 'reason', 'pos_note'], o, group, trackerState)).join('');
+
+        const tableCard = tbody.closest('.table-card');
+        if (tableCard) {
+            const countSpan = tableCard.querySelector('.tbl-count');
+            if (countSpan) countSpan.textContent = `(Showing ${pagedData.length} of ${total})`;
+
+            // Inject Pagination Controls
+            let pgDiv = tableCard.querySelector('.pagination-controls');
+            if (!pgDiv) {
+                pgDiv = document.createElement('div');
+                pgDiv.className = 'pagination-controls';
+                pgDiv.style.cssText = "display: flex; gap: 8px; align-items: center; justify-content: center; padding: 12px; background: var(--bg-card); border-top: 1px solid var(--border);";
+                tableCard.appendChild(pgDiv);
+            }
+
+            const btnStyle = "padding:4px 12px; background:var(--accent); color:white; border-radius:4px; border:none; cursor:pointer;";
+            const disabledStyle = "padding:4px 12px; background:var(--border); color:#64748b; border-radius:4px; border:none; cursor:not-allowed;";
+
+            pgDiv.innerHTML = `
+                <div style="flex: 1; color: #334155; font-size: 13px; font-weight: 600;">Tổng: <b>${total}</b> đơn &nbsp;|&nbsp; Trang ${p} / ${maxPage}</div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="window._delayPagination['${group}'] = 1; window.delayModule.renderLocalTableOnly('${group}')" style="${p === 1 ? disabledStyle : btnStyle}" ${p === 1 ? 'disabled' : ''}>First</button>
+                    <button onclick="window._delayPagination['${group}'] = ${p - 1}; window.delayModule.renderLocalTableOnly('${group}')" style="${p === 1 ? disabledStyle : btnStyle}" ${p === 1 ? 'disabled' : ''}>Prev</button>
+                    <span style="color: var(--text-base, #334155); font-weight:bold; margin: 0 4px; display:flex; align-items:center;">Page ${p} / ${maxPage}</span>
+                    <button onclick="window._delayPagination['${group}'] = ${p + 1}; window.delayModule.renderLocalTableOnly('${group}')" style="${p === maxPage ? disabledStyle : btnStyle}" ${p === maxPage ? 'disabled' : ''}>Next</button>
+                    <button onclick="window._delayPagination['${group}'] = ${maxPage}; window.delayModule.renderLocalTableOnly('${group}')" style="${p === maxPage ? disabledStyle : btnStyle}" ${p === maxPage ? 'disabled' : ''}>Last</button>
+                </div>
+            `;
+        }
+    }
+
+    function drawChart(canvasId, type, title, dataObj) {
+        const ctx = document.getElementById(canvasId);
+        if (charts[canvasId]) charts[canvasId].destroy();
+
+        const labels = Object.keys(dataObj);
+        const data = Object.values(dataObj);
+
+        charts[canvasId] = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: title,
+                    data: data,
+                    backgroundColor: ['#7dd3fc', '#facc15', '#ef4444', '#a855f7', '#4ade80', '#fb923c', '#94a3b8'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: type !== 'bar',
+                        position: 'right',
+                        labels: { color: '#475569', font: { size: 10 } }
+                    },
+                    title: {
+                        display: true,
+                        text: title,
+                        color: '#334155',
+                        font: { size: 14, weight: 'bold' }
+                    }
+                }
+            }
+        });
+    }
+
+    function exportToCSV(filename, rows) {
+        if (!rows || !rows.length) return;
+        const separator = ',';
+        const keys = Object.keys(rows[0]);
+        const csvContent =
+            keys.join(separator) +
+            '\n' +
+            rows.map(row => {
+                return keys.map(k => {
+                    let cell = row[k] === null || row[k] === undefined ? '' : row[k];
+                    cell = cell instanceof Date ? cell.toLocaleString() : cell.toString().replace(/"/g, '""');
+                    if (cell.search(/("|,|\n)/g) >= 0) { cell = `"${cell}"`; }
+                    return cell;
+                }).join(separator);
+            }).join('\n');
+
+        const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    function exportData() {
+        if (!window._currentDelayResults) {
+            alert("Please Fetch Data first.");
+            return;
+        }
+        const res = window._currentDelayResults;
+        const exportRows = [];
+
+        function mapForExport(o, priorityStr) {
+            return {
+                "Order ID": o.order_id,
+                "Tracking": o.tracking_number,
+                "Carrier": o.carrier,
+                "City": o.city,
+                "Current Status": o.status,
+                "Ship Date": o.ship_date,
+                "Last Update": o.last_update,
+                "Days Since Ship": o.days_since_ship,
+                "Days Since Last Update": o.days_since_update,
+                "All Tags": o.all_tags,
+                "Follow Reason": o.reason,
+                "POS Note": o.pos_note,
+                "Priority": priorityStr
+            };
+        }
+
+        res.overdue.forEach(o => exportRows.push(mapForExport(o, 'HIGH - OVERDUE')));
+        res.appointment.forEach(o => exportRows.push(mapForExport(o, 'HIGH - APPOINTMENT')));
+        res.needFollow.forEach(o => exportRows.push(mapForExport(o, 'MEDIUM - FOLLOW')));
+
+        exportToCSV("FOLLOW_TO_CARRIER.csv", exportRows);
+    }
+
+    function exportLocal(group) {
+        const data = getLocalFilteredData(group);
+        if (!data || data.length === 0) {
+            alert("No data available to export for this selection.");
+            return;
+        }
+
+        const exportRows = data.map(o => {
+            return {
+                "Order ID": o.order_id,
+                "Tracking": o.tracking_number,
+                "Carrier": o.carrier,
+                "City": o.city,
+                "Current Status": o.status,
+                "Ship Date": o.ship_date,
+                "Last Update": o.last_update,
+                "Days Since Ship": o.days_since_ship,
+                "Days Since Last Update": o.days_since_update,
+                "All Tags": o.all_tags,
+                "Follow Reason": o.reason,
+                "POS Note": o.pos_note,
+                "Priority": group.toUpperCase()
+            };
+        });
+
+        const safeDate = new Date().toISOString().slice(0, 10);
+        exportToCSV(`Carrier_Export_${group}_${safeDate}.csv`, exportRows);
+    }
+
+    // Auto refresh every 5 mins
+    setInterval(() => {
+        if (!document.getElementById('tab-delay').classList.contains('hidden')) {
+            const statusEl = document.getElementById('delayStatus');
+            if (statusEl.innerHTML.includes('Showing') || statusEl.innerHTML.includes('Success')) {
+                runDelayCheck();
+            }
+        }
+    }, 300000);
+
+    // Bind instantaneous filter events
+    ['filterMarket', 'filterCarrier', 'filterCity', 'filterStatus', 'filterTag', 'filterDateFrom', 'filterDateTo'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', applyFilters);
+            el.addEventListener('input', applyFilters);
+        }
+    });
+
+    document.querySelectorAll('.tbl-filter-customer').forEach(el => {
+        el.addEventListener('input', () => {
+            const group = el.closest('table').getAttribute('data-group');
+            if (group) renderLocalTableOnly(group);
+        });
+    });
+
+    // Global dropdown toggle logic (extracted from render cycle to prevent duplication)
+    document.addEventListener('click', e => {
+        const isHeader = e.target.closest('.ef-header');
+        if (isHeader) {
+            const drop = isHeader.nextElementSibling;
+            const isVis = drop.style.display === 'block';
+            document.querySelectorAll('.ef-dropdown').forEach(d => d.style.display = 'none');
+            drop.style.display = isVis ? 'none' : 'block';
+            return;
+        }
+        if (!e.target.closest('.excel-filter')) {
+            document.querySelectorAll('.ef-dropdown').forEach(d => d.style.display = 'none');
+        }
+    });
+
+    // Auto-fetch on page load if Delay Orders is active tab, or just wait for explicit tab click
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            const cachedParams = localStorage.getItem('delay_orders_cache');
+            const cachedTime = localStorage.getItem('delay_orders_cache_time');
+            if (cachedParams) {
+                _allFetchedOrders = JSON.parse(cachedParams);
+                const ageMins = Math.floor((Date.now() - parseInt(cachedTime || Date.now())) / 60000);
+                document.getElementById('delayStatus').innerHTML = `Loaded ${_allFetchedOrders.length} orders from cache (${ageMins} mins ago). Reloading in background...`;
+                populateFilterDropdowns();
+                applyFilters();
+            }
+        } catch (e) {
+            console.error('Failed to load cache:', e);
+        }
+
+        // Run immediately in background to populate data early
+        setTimeout(runDelayCheck, 1000);
+    });
+
+    return { runDelayCheck, exportData, applyFilters, exportLocal, renderLocalTableOnly };
+})();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,478 @@
+{
+  "cash": 0,
+  "page": {
+    "id": "503208352880503",
+    "name": "ZudaifuOriginal.shop",
+    "tag_sync_group_id": null,
+    "tags": [
+      {
+        "color": "#1890ff",
+        "id": 57,
+        "lighten_color": "rgba(24,144,255,0.4)",
+        "text": "HỎI"
+      },
+      {
+        "color": "#df2a3f",
+        "id": 77,
+        "is_lead_event": false,
+        "lighten_color": "rgba(223,42,63,0.4)",
+        "text": "LÊN ĐƠN"
+      },
+      {
+        "color": "#ffc53d",
+        "id": 78,
+        "is_lead_event": false,
+        "lighten_color": "rgba(255,197,61,0.4)",
+        "text": "THIẾU TT"
+      },
+      {
+        "color": "#9254de",
+        "id": 80,
+        "lighten_color": "rgba(146,84,222,0.4)",
+        "text": "HOÀN"
+      },
+      {
+        "color": "#fa8c16",
+        "id": 81,
+        "is_lead_event": false,
+        "lighten_color": "rgba(250,140,22,0.4)",
+        "text": "THIẾU SP"
+      },
+      {
+        "color": "#1cae67",
+        "id": 82,
+        "is_lead_event": false,
+        "lighten_color": "rgba(28,174,103,0.4)",
+        "text": "ĐÃ LH WHATSAPP"
+      },
+      {
+        "color": "#000000",
+        "id": 85,
+        "is_lead_event": false,
+        "lighten_color": "rgba(0,0,0,0.4)",
+        "text": "CẦN XỬ LÝ"
+      },
+      {
+        "color": "#ae3051",
+        "id": 86,
+        "is_lead_event": false,
+        "lighten_color": "rgba(174,48,81,0.4)",
+        "text": "ĐƠN HOLD"
+      }
+    ],
+    "username": null
+  },
+  "p_utm_medium": null,
+  "system_id": 47605,
+  "einvoices": null,
+  "assigning_seller": {
+    "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+    "email": "hoangdat3847@gmail.com",
+    "fb_id": "122122628390485465",
+    "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+    "name": "Tùng Nguyễn",
+    "phone_number": null
+  },
+  "p_utm_content": null,
+  "prepaid": 0,
+  "assigning_care": null,
+  "status": 1,
+  "total_quantity": 2,
+  "customer": {
+    "used_reward_point": 0,
+    "creator_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+    "is_adjust_debts": null,
+    "reward_point": 0,
+    "count_referrals": 0,
+    "is_block": false,
+    "name": "Bernadette Montecalvo",
+    "shop_customer_addresses": [
+      {
+        "address": "2669 al ghaznawi street al rawdah district",
+        "commune_id": null,
+        "country_code": 966,
+        "district_id": "966_jeddah-rawdah",
+        "full_address": "2669 al ghaznawi street al rawdah district, Rawdah, Jeddah",
+        "full_name": "Bernadette Montecalvo",
+        "id": "5bb4798e-ab21-42fc-a3fb-42f0e315ca0c",
+        "phone_number": "+966550816780",
+        "post_code": null,
+        "province_id": "966_jeddah"
+      }
+    ],
+    "fb_id": "503208352880503_26557588913872770",
+    "notes": [],
+    "updated_at": "2026-04-15T10:03:04",
+    "identity_code": null,
+    "referral_code": "schmdHTr",
+    "customer_id": "8b203aae-b838-4a90-ac4b-f9cbddbaa899",
+    "returned_order_count": 0,
+    "purchased_amount": 0,
+    "id": "d8552e38-dd1a-4bf5-a608-0fb7f91ee3d9",
+    "username": null,
+    "succeed_order_count": 0,
+    "total_amount_referred": null,
+    "list_voucher": [],
+    "assigned_user_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+    "active_levera_pay": false,
+    "tags": [],
+    "phone_numbers": [
+      "+966550816780"
+    ],
+    "date_of_birth": null,
+    "emails": [],
+    "conversation_link": "https://pancake.vn/503208352880503?customer_id=8b203aae-b838-4a90-ac4b-f9cbddbaa899",
+    "shop_id": 714234971,
+    "inserted_at": "2026-04-15T10:03:00",
+    "level": null,
+    "order_sources": [
+      "-1"
+    ],
+    "current_debts": 0,
+    "last_order_at": null,
+    "currency": null,
+    "conversation_tags": [],
+    "order_count": 1,
+    "gender": null,
+    "company_info": null,
+    "is_discount_by_level": true,
+    "user_block_id": null
+  },
+  "exchange_payment": 0,
+  "surcharge": 0,
+  "note_image": null,
+  "total_discount": -9900,
+  "warehouse_info": {
+    "address": "Malih Bin Tarif Corridor, 7711, Al Aziziyah, Riyadh 14513",
+    "affiliate_id": null,
+    "commune_id": null,
+    "custom_id": "WHKSA02",
+    "district_id": "966_riyadh-aziziyah",
+    "ffm_id": null,
+    "full_address": "Malih Bin Tarif Corridor, 7711, Al Aziziyah, Riyadh 14513, Aziziyah, Riyadh",
+    "has_snappy_service": false,
+    "name": "KHO KSA J&T",
+    "phone_number": "966 57 026 9183 - 966 57 008 9257",
+    "postcode": null,
+    "province_id": "966_riyadh",
+    "settings": null
+  },
+  "is_live_shopping": false,
+  "received_at_shop": false,
+  "creator": {
+    "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+    "email": "hoangdat3847@gmail.com",
+    "fb_id": "122122628390485465",
+    "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+    "name": "Tùng Nguyễn",
+    "phone_number": null
+  },
+  "is_smc": false,
+  "p_utm_id": null,
+  "items_length": 1,
+  "activated_promotion_advances": [],
+  "shipping_fee": 0,
+  "money_to_collect": 9900,
+  "additional_info": {
+    "booking_sn": null,
+    "delivery_deadline": null,
+    "service_partner": null
+  },
+  "updated_at": "2026-04-15T10:03:04.175180",
+  "estimate_delivery_date": null,
+  "page_id": "503208352880503",
+  "id": 47605,
+  "p_utm_term": null,
+  "charged_by_card": 0,
+  "levera_point": 0,
+  "last_editor": {
+    "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+    "email": "hoangdat3847@gmail.com",
+    "fb_id": "122122628390485465",
+    "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+    "name": "Tùng Nguyễn",
+    "phone_number": null
+  },
+  "tracking_link": "https://order.pke.gg/tracking?id=gJ9Yp%2Fbt75Iorp4eSmT8HNTRscav1KQe7MiWnWD3ivhLL%2F2cKxv1fY663U9miPxfbCWicuFMqGx3aDtIisynlKmR0ZrGOAg%3D",
+  "bill_phone_number": "+966550816780",
+  "link": null,
+  "duplicated_ip": false,
+  "warehouse_id": "124f201e-f477-47a0-8d4c-3e81a1971382",
+  "items": [
+    {
+      "added_to_cart_quantity": 2,
+      "assigning_seller": {
+        "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+        "email": "hoangdat3847@gmail.com",
+        "fb_id": "122122628390485465",
+        "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+        "name": "Tùng Nguyễn",
+        "phone_number": null
+      },
+      "assigning_seller_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+      "components": null,
+      "composite_item_id": null,
+      "discount_each_product": 0,
+      "exchange_count": 0,
+      "id": 11264861357,
+      "is_bonus_product": false,
+      "is_composite": false,
+      "is_discount_percent": false,
+      "is_wholesale": false,
+      "measure_group_id": null,
+      "note": null,
+      "note_product": "",
+      "one_time_product": false,
+      "product_id": "cff403d3-e399-4489-99aa-e810022f2089",
+      "quantity": 2,
+      "return_quantity": 0,
+      "returned_count": 0,
+      "returning_quantity": 0,
+      "same_price_discount": 0,
+      "total_discount": 0,
+      "variation_id": "47a3a920-ca8b-4ea1-b5e4-15a373c14ad5",
+      "variation_info": {
+        "avg_price": 18994.5846253242,
+        "barcode": "KSAZEN8015",
+        "brand_id": null,
+        "category_ids": [
+          47013
+        ],
+        "detail": "Quantity: Piece",
+        "display_id": "KSAZEN8015",
+        "exact_price": 54950,
+        "fields": [
+          {
+            "id": "b42b383d-f441-4f50-b490-990a00cece20",
+            "keyValue": "PIECE",
+            "name": "Quantity",
+            "value": "Piece"
+          }
+        ],
+        "images": [
+          "https://content.pancake.vn/2-25/2025/8/6/2885bf23e14c03c6995f021f9d285997e69801cb.jpg"
+        ],
+        "is_upsale_product": false,
+        "last_imported_price": 27475,
+        "measure_info": null,
+        "name": "KSA Zudaifu Cream",
+        "product_display_id": "KSAZEN8015",
+        "retail_price": 0,
+        "retail_price_original": null,
+        "tax_rate": 0,
+        "weight": 15
+      }
+    }
+  ],
+  "prepaid_by_point": {
+    "money": 0,
+    "point": 0
+  },
+  "assigning_seller_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+  "status_name": "submitted",
+  "customer_referral_code": null,
+  "ads_source": "Facebook",
+  "bill_email": null,
+  "post_id": "503208352880503_122114423414704910",
+  "account_name": "ZudaifuOriginal.shop",
+  "charged_by_qrpay": 0,
+  "is_free_shipping": false,
+  "bill_full_name": "Bernadette Montecalvo",
+  "returned_reason": null,
+  "partner_fee": 0,
+  "tags": [],
+  "botcake_info": null,
+  "buyer_total_amount": null,
+  "order_link": "https://pos.pages.fm/shop/714234971/order?order_id=90085067713193",
+  "is_livestream": false,
+  "status_history": [
+    {
+      "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+      "editor": {
+        "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+        "email": "hoangdat3847@gmail.com",
+        "fb_id": "122122628390485465",
+        "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+        "name": "Tùng Nguyễn",
+        "phone_number": null
+      },
+      "editor_fb": "122122628390485465",
+      "editor_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+      "name": "Tùng Nguyễn",
+      "old_status": null,
+      "status": 0,
+      "updated_at": "2026-04-15T10:03:00"
+    },
+    {
+      "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+      "editor": {
+        "avatar_url": "https://content.pancake.vn/2-2603/2026/3/4/33d79fcf4f85c2628f18725fb1ed0c24892e614c.png",
+        "email": "hoangdat3847@gmail.com",
+        "fb_id": "122122628390485465",
+        "id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+        "name": "Tùng Nguyễn",
+        "phone_number": null
+      },
+      "editor_fb": "122122628390485465",
+      "editor_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+      "name": "Tùng Nguyễn",
+      "old_status": 0,
+      "status": 1,
+      "updated_at": "2026-04-15T10:03:03"
+    }
+  ],
+  "histories": [
+    {
+      "amount_owed_to_customer": {
+        "new": 0,
+        "old": null
+      },
+      "bank_payments": {
+        "new": {},
+        "old": null
+      },
+      "editor_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+      "status": {
+        "new": 1,
+        "old": 0
+      },
+      "surcharges": {
+        "new": {},
+        "old": null
+      },
+      "updated_at": "2026-04-15T10:03:04"
+    },
+    {
+      "editor_id": "1180e858-2a13-4f37-9f71-7a1b11f4218c",
+      "is_lock_order_by_system": {
+        "new": true,
+        "old": null
+      },
+      "is_locked": {
+        "new": true,
+        "old": false
+      },
+      "updated_at": "2026-04-15T10:03:04"
+    }
+  ],
+  "customer_needs": [],
+  "marketplace_id": null,
+  "partner": {
+    "cod": 0,
+    "count_of_delivery": null,
+    "custom_partner_id": "7498d1d4-a6bb-4fd3-93ff-8c83aae2aedb",
+    "delivery_name": null,
+    "delivery_tel": null,
+    "extend_code": null,
+    "extend_update": [],
+    "first_delivery_at": null,
+    "is_ghn_v2": null,
+    "is_returned": null,
+    "order_id_ghn": null,
+    "order_number_vtp": null,
+    "paid_at": null,
+    "partner_id": "7498d1d4-a6bb-4fd3-93ff-8c83aae2aedb",
+    "partner_name": "J&T KSA",
+    "partner_status": "request_received",
+    "picked_up_at": null,
+    "printed_form": null,
+    "service_partner": null,
+    "sort_code": null,
+    "system_created": null,
+    "total_fee": 0,
+    "updated_at": "2026-04-15T10:03:04"
+  },
+  "time_assign_seller": "2026-04-15T10:03:00",
+  "pke_mkter": null,
+  "conversation_id": "503208352880503_26557588913872770",
+  "charged_by_momo": 0,
+  "shop_id": 714234971,
+  "total_price_after_sub_discount": 9900,
+  "returned_reason_name": null,
+  "inserted_at": "2026-04-15T10:03:00.870356",
+  "order_currency": "SAR",
+  "account": "503208352880503",
+  "bank_payments": {},
+  "shipping_address": {
+    "address": "2669 al ghaznawi street al rawdah district",
+    "commnue_name": null,
+    "commune_code_sicepat": null,
+    "commune_id": null,
+    "commune_name": null,
+    "country_code": "966",
+    "district_id": "966_jeddah-rawdah",
+    "district_name": "Rawdah",
+    "full_address": "2669 al ghaznawi street al rawdah district, Rawdah, Jeddah",
+    "full_name": "Bernadette Montecalvo",
+    "marketplace_address": null,
+    "new_commune_id": null,
+    "new_full_address": null,
+    "new_province_id": null,
+    "phone_number": "+966550816780",
+    "post_code": "",
+    "province_id": "966_jeddah",
+    "province_name": "Jeddah",
+    "render_type": "old"
+  },
+  "customer_pay_fee": false,
+  "ad_id": "120246957759930536",
+  "order_sources": -1,
+  "note": "",
+  "sub_status": null,
+  "note_print": null,
+  "p_utm_campaign": null,
+  "activated_combo_products": [
+    {
+      "categories": {},
+      "combo_product_id": 1842016249,
+      "combo_product_info": {
+        "bonus_products": [],
+        "categories": null,
+        "combo_product_variations": [
+          {
+            "count": 2,
+            "product_id": "cff403d3-e399-4489-99aa-e810022f2089",
+            "variation_id": null
+          }
+        ],
+        "currency": "SAR",
+        "custom_id": "KSAZEN8015CB01",
+        "discount_amount": -9900,
+        "discount_by_percent": 0,
+        "end_time": null,
+        "is_categories": false,
+        "is_free_shipping": false,
+        "is_use_percent": false,
+        "is_value_combo": true,
+        "is_variation": false,
+        "limited_count_uses": null,
+        "max_discount_by_percent": 0,
+        "name": "2 KSA ZUDAIFU CREAM",
+        "order_sources": [],
+        "order_types": null,
+        "snippet": null,
+        "start_time": null,
+        "value_combo": 9900
+      },
+      "id": 318059202,
+      "quantity_combo_activated": 1
+    }
+  ],
+  "tax": 0,
+  "marketer": null,
+  "time_assign_care": null,
+  "fee_marketplace": 0,
+  "payment_purchase_histories": [],
+  "exchange_value": 0,
+  "advanced_platform_fee": {},
+  "total_price": 0,
+  "assigning_care_id": null,
+  "return_fee": false,
+  "order_sources_name": "Facebook",
+  "duplicated_phone": false,
+  "cod": 9900,
+  "transfer_money": 0,
+  "p_utm_source": null,
+  "is_exchange_order": false,
+  "time_send_partner": "2026-04-15T10:03:01"
+}
