@@ -68,7 +68,7 @@ const PANCAKE_API_KEY = "f6a4b7d3110c4dcdac0a5c04e3d81ea4";
 const PANCAKE_SHOP_ID = "714234971";
 
 if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    mongoose.connect(process.env.MONGODB_URI)
         .then(() => console.log('✅ MongoDB Connected'))
         .catch(err => console.error('❌ MongoDB Connection Error:', err));
 } else {
