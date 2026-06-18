@@ -80,7 +80,6 @@ cron.schedule('*/5 * * * *', async () => {
     if (!process.env.MONGODB_URI) return;
     console.log(`[CRON] ${new Date().toISOString()} Starting background fetch from Pancake API...`);
     try {
-        let allRawOrders = [];
         const initUrl = `https://pos.pancake.vn/api/v1/shops/${PANCAKE_SHOP_ID}/orders?api_key=${PANCAKE_API_KEY}&page_number=1&page_size=100`;
         const data1Req = await axios.get(initUrl, { timeout: 20000 }).catch(e => null);
 
@@ -92,7 +91,21 @@ cron.schedule('*/5 * * * *', async () => {
         const data1 = data1Req.data;
         const totalPages = data1.total_pages || 1;
         let raw1 = Array.isArray(data1) ? data1 : (data1.data || data1.orders || []);
-        allRawOrders.push(...raw1);
+
+        const upsertBatch = async (rawBatch, pageNum) => {
+            const bulkOps = rawBatch.filter(raw => raw && (raw.id || raw.order_id)).map(raw => ({
+                updateOne: {
+                    filter: { id: String(raw.id || raw.order_id) },
+                    update: { $set: { id: String(raw.id || raw.order_id), data: raw, fetched_at: new Date() } },
+                    upsert: true
+                }
+            }));
+            if (bulkOps.length > 0) {
+                await RawOrder.bulkWrite(bulkOps, { ordered: false }).catch(e => console.log(`[CRON] bulkWrite error on page ${pageNum}:`, e.message));
+            }
+        };
+
+        if (raw1.length > 0) await upsertBatch(raw1, 1);
 
         // Fetch remaining pages concurrently with limit (similar to frontend but safely in backend)
         const concurrencyLimit = 5;
@@ -110,10 +123,10 @@ cron.schedule('*/5 * * * *', async () => {
                     activeCount++;
                     const u = `https://pos.pancake.vn/api/v1/shops/${PANCAKE_SHOP_ID}/orders?api_key=${PANCAKE_API_KEY}&page_number=${p}&page_size=100`;
                     axios.get(u, { timeout: 20000 })
-                        .then(req => {
+                        .then(async (req) => {
                             if (req && req.data) {
                                 let raw = Array.isArray(req.data) ? req.data : (req.data.data || req.data.orders || []);
-                                allRawOrders.push(...raw);
+                                if (raw.length > 0) await upsertBatch(raw, p);
                             }
                         })
                         .catch(err => console.log(`[CRON] Error on page ${p}:`, err.message))
@@ -126,20 +139,7 @@ cron.schedule('*/5 * * * *', async () => {
             runNext();
         });
 
-        console.log(`[CRON] Fetched ${allRawOrders.length} orders. Upserting to MongoDB...`);
-
-        const bulkOps = allRawOrders.filter(raw => raw && (raw.id || raw.order_id)).map(raw => ({
-            updateOne: {
-                filter: { id: String(raw.id || raw.order_id) },
-                update: { $set: { id: String(raw.id || raw.order_id), data: raw, fetched_at: new Date() } },
-                upsert: true
-            }
-        }));
-
-        if (bulkOps.length > 0) {
-            await RawOrder.bulkWrite(bulkOps, { ordered: false });
-        }
-        console.log(`[CRON] Successfully updated MongoDB with ${bulkOps.length} orders.`);
+        console.log(`[CRON] Successfully fetched and upserted up to ${totalPages} pages array to MongoDB.`);
     } catch (e) {
         console.error('[CRON] Error:', e.message);
     }
@@ -154,11 +154,40 @@ app.get('/api/delay-orders', async (req, res) => {
             return res.status(503).json({ success: false, error: 'Database caching is disabled because MONGODB_URI is not set.' });
         }
 
-        const orders = await RawOrder.find({}, { data: 1, _id: 0 }).lean();
-        const rawArray = orders.map(o => o.data);
-        res.json({ success: true, count: rawArray.length, data: rawArray });
+        const cursor = RawOrder.find({}, { data: 1, _id: 0 }).lean().cursor();
+        res.setHeader('Content-Type', 'application/json');
+        res.write('{"success": true, "data": [');
+
+        let isFirst = true;
+        let count = 0;
+
+        cursor.on('data', (doc) => {
+            if (!isFirst) res.write(',');
+            res.write(JSON.stringify(doc.data));
+            isFirst = false;
+            count++;
+        });
+
+        cursor.on('end', () => {
+            res.write(`], "count": ${count}}`);
+            res.end();
+        });
+
+        cursor.on('error', (err) => {
+            console.error('Cursor Stream Error', err);
+            // If headers are already sent, we can't send a 500 cleanly as JSON anymore.
+            if (!res.headersSent) {
+                res.status(500).json({ success: false, error: err.message });
+            } else {
+                res.end();
+            }
+        });
     } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, error: err.message });
+        } else {
+            res.end();
+        }
     }
 });
 
