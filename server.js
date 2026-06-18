@@ -92,11 +92,65 @@ cron.schedule('*/5 * * * *', async () => {
         const totalPages = data1.total_pages || 1;
         let raw1 = Array.isArray(data1) ? data1 : (data1.data || data1.orders || []);
 
+        const trimRaw = (r) => {
+            if (!r) return null;
+            return {
+                id: r.id,
+                order_id: r.order_id,
+                status: r.status,
+                status_name: r.status_name,
+                inserted_at: r.inserted_at,
+                created_at: r.created_at,
+                updated_at: r.updated_at,
+                latest_status_time: r.latest_status_time,
+                city: r.city,
+                customer_name: r.customer_name,
+                phone: r.phone,
+                bill_full_name: r.bill_full_name,
+                bill_phone_number: r.bill_phone_number,
+                carrier: r.carrier,
+                carrier_name: r.carrier_name,
+                partner_name: r.partner_name,
+                market: r.market,
+                tags: r.tags,
+                order_tags: r.order_tags,
+                note: r.note,
+                seller_note: r.seller_note,
+                shipping_note: r.shipping_note,
+                customer_note: r.customer_note,
+                partner_note: r.partner_note,
+                tracking_number: r.tracking_number,
+                tracking_link: r.tracking_link,
+                shop_id: r.shop_id,
+                page_id: r.page_id,
+                // Partial specific objects
+                shipping_address: r.shipping_address ? {
+                    province: r.shipping_address.province,
+                    province_name: r.shipping_address.province_name,
+                    city_name: r.shipping_address.city_name,
+                    full_address: r.shipping_address.full_address
+                } : null,
+                partner: r.partner ? {
+                    extend_code: r.partner.extend_code,
+                    partner_name: r.partner.partner_name,
+                    name: r.partner.name
+                } : null,
+                customer: r.customer ? {
+                    name: r.customer.name,
+                    phone_number: r.customer.phone_number,
+                    id: r.customer.id,
+                    conversation_link: r.customer.conversation_link
+                } : null,
+                page: r.page ? { id: r.page.id } : null,
+                recent_history: r.recent_history // used by extractPackingTime wrapper
+            };
+        };
+
         const upsertBatch = async (rawBatch, pageNum) => {
             const bulkOps = rawBatch.filter(raw => raw && (raw.id || raw.order_id)).map(raw => ({
                 updateOne: {
                     filter: { id: String(raw.id || raw.order_id) },
-                    update: { $set: { id: String(raw.id || raw.order_id), data: raw, fetched_at: new Date() } },
+                    update: { $set: { id: String(raw.id || raw.order_id), data: trimRaw(raw), fetched_at: new Date() } },
                     upsert: true
                 }
             }));
@@ -187,6 +241,23 @@ app.get('/api/delay-orders', async (req, res) => {
             res.status(500).json({ success: false, error: err.message });
         } else {
             res.end();
+        }
+    }
+});
+
+/**
+ * CLEAR DATABASE ENDPOINT (Manual trigger to wipe the 512MB bloated payload if quota is exceeded)
+ */
+app.get('/api/clear-db', basicAuth, async (req, res) => {
+    try {
+        if (!process.env.MONGODB_URI) return res.send('Mongodb not configured');
+        await RawOrder.collection.drop();
+        res.send('✅ ĐÃ DỌN SẠCH KÉT SẮT 512MB CỦA ĐÁM MÂY. BẠN HÃY CHỜ 3 PHÚT ĐỂ BOT BẮT ĐẦU KÉO LẠI DỮ LIỆU SUPER NHẸ NHÉ!');
+    } catch (e) {
+        if (e.code === 26 || e.message.includes('ns not found')) {
+            res.send('✅ ĐÃ DỌN SẠCH KÉT SẮT 512MB CỦA ĐÁM MÂY. BẠN HÃY CHỜ 3 PHÚT ĐỂ BOT BẮT ĐẦU KÉO LẠI DỮ LIỆU SUPER NHẸ NHÉ!');
+        } else {
+            res.send(`Failed to clear: ${e.message}`);
         }
     }
 });
