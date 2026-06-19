@@ -69,8 +69,18 @@ const PANCAKE_SHOP_ID = "714234971";
 
 if (process.env.MONGODB_URI) {
     mongoose.connect(process.env.MONGODB_URI)
-        .then(() => console.log('✅ MongoDB Connected'))
-        .catch(err => console.error('❌ MongoDB Connection Error:', err));
+        .then(async () => {
+            console.log('✅ MongoDB Connected');
+            // Auto-wipe the collection on booting to clear the previously locked 512MB bloated payload.
+            // Once this runs, the newly mapped lightweight payloads will be populated by the CRON.
+            try {
+                await RawOrder.collection.drop();
+                console.log('✅ Auto-cleared MongoDB collection on boot to restore quota.');
+            } catch (e) {
+                console.log('ℹ️ Auto-clear skipped or collection already empty:', e.message);
+            }
+        })
+        .catch(err => console.log('❌ MongoDB Connection Error:', err));
 } else {
     console.warn('⚠️ MONGODB_URI missing in .env! Database and Cron caching will be disabled.');
 }
@@ -209,13 +219,17 @@ app.get('/api/delay-orders', async (req, res) => {
         }
 
         const cursor = RawOrder.find({}, { data: 1, _id: 0 }).lean().cursor();
-        res.setHeader('Content-Type', 'application/json');
-        res.write('{"success": true, "data": [');
 
         let isFirst = true;
         let count = 0;
+        let headerSent = false;
 
         cursor.on('data', (doc) => {
+            if (!headerSent) {
+                res.setHeader('Content-Type', 'application/json');
+                res.write('{"success": true, "data": [');
+                headerSent = true;
+            }
             if (!isFirst) res.write(',');
             res.write(JSON.stringify(doc.data));
             isFirst = false;
@@ -223,14 +237,18 @@ app.get('/api/delay-orders', async (req, res) => {
         });
 
         cursor.on('end', () => {
+            if (!headerSent) {
+                // If it was completely empty
+                return res.json({ success: true, count: 0, data: [] });
+            }
             res.write(`], "count": ${count}}`);
             res.end();
         });
 
         cursor.on('error', (err) => {
             console.error('Cursor Stream Error', err);
-            // If headers are already sent, we can't send a 500 cleanly as JSON anymore.
-            if (!res.headersSent) {
+            if (!headerSent) {
+                // We caught the error before writing the stream! So we can send a proper JSON error!
                 res.status(500).json({ success: false, error: err.message });
             } else {
                 res.end();
