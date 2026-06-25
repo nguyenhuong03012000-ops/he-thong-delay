@@ -215,45 +215,13 @@ cron.schedule('*/5 * * * *', async () => {
 app.get('/api/delay-orders', async (req, res) => {
     try {
         if (!process.env.MONGODB_URI) {
-            return res.status(503).json({ success: false, error: 'Database caching is disabled because MONGODB_URI is not set.' });
+            return res.status(503).json({ success: false, error: 'Database caching is disabled.' });
         }
 
-        const cursor = RawOrder.find({}, { data: 1, _id: 0 }).lean().cursor();
+        const orders = await RawOrder.find({}, { data: 1, _id: 0 }).limit(45000).lean();
+        const rawArray = orders.map(o => o.data).filter(Boolean);
 
-        let isFirst = true;
-        let count = 0;
-        let headerSent = false;
-
-        cursor.on('data', (doc) => {
-            if (!headerSent) {
-                res.setHeader('Content-Type', 'application/json');
-                res.write('{"success": true, "data": [');
-                headerSent = true;
-            }
-            if (!isFirst) res.write(',');
-            res.write(JSON.stringify(doc.data));
-            isFirst = false;
-            count++;
-        });
-
-        cursor.on('end', () => {
-            if (!headerSent) {
-                // If it was completely empty
-                return res.json({ success: true, count: 0, data: [] });
-            }
-            res.write(`], "count": ${count}}`);
-            res.end();
-        });
-
-        cursor.on('error', (err) => {
-            console.error('Cursor Stream Error', err);
-            if (!headerSent) {
-                // We caught the error before writing the stream! So we can send a proper JSON error!
-                res.status(500).json({ success: false, error: err.message });
-            } else {
-                res.end();
-            }
-        });
+        return res.json({ success: true, count: rawArray.length, data: rawArray });
     } catch (err) {
         if (!res.headersSent) {
             res.status(500).json({ success: false, error: err.message });
